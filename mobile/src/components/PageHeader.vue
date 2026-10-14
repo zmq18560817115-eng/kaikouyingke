@@ -1,0 +1,2 @@
+<template><view class="page-header"><button role="button" class="icon-button back-button" @click="$emit('back')" aria-label="返回"><AppIcon name="arrow-left" :size="25" /></button><view class="header-title"><text>{{title}}</text><text v-if="subtitle" class="header-sub">{{subtitle}}</text></view><slot /></view></template>
+<script setup>import AppIcon from './AppIcon.vue';defineProps(['title','subtitle']);defineEmits(['back'])</script>

@@ -1,0 +1,4 @@
+{
+  "pages": [{ "path": "pages/index/index", "style": { "navigationStyle": "custom", "navigationBarTitleText": "开口迎客", "disableScroll": false } }],
+  "globalStyle": { "backgroundColor": "#faf8f3", "navigationBarTextStyle": "black", "navigationBarBackgroundColor": "#faf8f3" }
+}

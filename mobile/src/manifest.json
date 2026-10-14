@@ -1,0 +1,7 @@
+{
+  "name": "开口迎客", "appid": "", "description": "情境普通话训练", "versionName": "0.1.0", "versionCode": "100",
+  "transformPx": false,
+  "app-plus": { "usingComponents": true, "distribute": { "android": { "permissions": ["<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>"] } } },
+  "h5": { "title": "开口迎客", "router": { "mode": "hash" } },
+  "mp-weixin": { "appid": "", "setting": { "urlCheck": true, "es6": true, "minified": true }, "usingComponents": true, "permission": { "scope.record": { "desc": "用于你主动开始的普通话录音练习" } }, "requiredPrivateInfos": [] }
+}

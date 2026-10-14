@@ -1,0 +1,107 @@
+{
+  "version": "3.0",
+  "status": "proposed",
+  "color": {
+    "color.brand.primary": {
+      "value": "#237A59",
+      "description": "主按钮、选中状态、关键进度"
+    },
+    "color.brand.pressed": {
+      "value": "#195F44",
+      "description": "主按钮按下状态"
+    },
+    "color.text.primary": {
+      "value": "#102B24",
+      "description": "标题、正文主信息"
+    },
+    "color.text.secondary": {
+      "value": "#58665F",
+      "description": "辅助说明，禁止低透明度灰字"
+    },
+    "color.surface.canvas": {
+      "value": "#FAF8F3",
+      "description": "暖白背景"
+    },
+    "color.surface.card": {
+      "value": "#FFFFFF",
+      "description": "内容卡片"
+    },
+    "color.surface.green": {
+      "value": "#EDF6E8",
+      "description": "正向状态浅底"
+    },
+    "color.surface.blue": {
+      "value": "#E6F3FB",
+      "description": "听力与信息浅底"
+    },
+    "color.surface.amber": {
+      "value": "#FFF2D5",
+      "description": "待加强与注意浅底"
+    },
+    "color.feedback.warning": {
+      "value": "#9A5B00",
+      "description": "警示文字，必须搭配说明"
+    },
+    "color.feedback.error": {
+      "value": "#B23B35",
+      "description": "权限或系统问题，避免用于口音评价"
+    },
+    "color.border.control": {
+      "value": "#7B8C83",
+      "description": "输入边界、未选中的可操作轮廓"
+    }
+  },
+  "typography": {
+    "unit": "sp",
+    "title": 28,
+    "pageTitle": 24,
+    "cardTitle": 22,
+    "body": 20,
+    "supporting": 18,
+    "tabLabel": 14,
+    "lineHeight": 1.5
+  },
+  "spacing": {
+    "unit": "dp",
+    "scale": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32
+    ]
+  },
+  "radius": {
+    "card": 20,
+    "button": 28
+  },
+  "layout": {
+    "unit": "dp",
+    "baseWidth": 390,
+    "testWidths": [
+      360,
+      390,
+      412
+    ],
+    "pagePadding": 16,
+    "cardPadding": [
+      16,
+      20
+    ],
+    "primaryButtonHeight": [
+      56,
+      64
+    ],
+    "minimumTouchTarget": 48,
+    "recorderTarget": 72
+  },
+  "motion": {
+    "unit": "ms",
+    "transitionRange": [
+      150,
+      250
+    ],
+    "respectsReducedMotion": true
+  }
+}
