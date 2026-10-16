@@ -1,13 +1,27 @@
 import { reactive } from 'vue'
 import domain from './domain.mjs'
-const KEY='kaikou-yingke-v1'
+import { scenarios } from './data/library'
+const KEY = 'kaikou-yingke-v1'
+const SAVE_ERROR = '没有保存成功，请检查本机空间后重试。'
 let cached
-try{cached=uni.getStorageSync(KEY)}catch{}
-export const state=reactive({...domain.fresh(),...(cached&&cached.version===1?cached:{}),settings:{...domain.fresh().settings,...cached?.settings}})
-export function persist(){try{uni.setStorageSync(KEY,JSON.parse(JSON.stringify(state)))}catch{uni.showToast({title:'手机空间不足，请先管理录音',icon:'none'})}}
-export function localDay(){return new Date(Date.now()+8*60*60*1000).toISOString().slice(0,10)}
-export function markComplete(id){domain.completeLesson(state,id,localDay());persist()}
-export function queueReview(item){const r=domain.addReview(state,item);persist();return r}
-export function savePersonal(facts){const c=domain.createPersonal(facts,'p-'+Date.now());state.personal.unshift(c);persist();return c}
-export function removeRecording(id){domain.deleteRecording(state,id);persist()}
-export const uid=prefix=>prefix+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)
+try { cached = uni.getStorageSync(KEY) } catch {}
+export const state = reactive(domain.restoreState(cached, scenarios))
+const write = snapshot => uni.setStorageSync(KEY, snapshot)
+export function updateState(change) {
+  const result = domain.transact(state, change, write)
+  if (!result.ok) uni.showToast({ title: SAVE_ERROR, icon: 'none' })
+  return result.ok
+}
+export const localDay = () => new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10)
+export const uid = prefix => prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+export const markComplete = id => updateState(s => domain.completeLesson(s, id, localDay()))
+export function queueReview(item) {
+  let review
+  return updateState(s => { review = domain.addReview(s, item) }) ? review : null
+}
+export function savePersonal(facts, draftId) {
+  const card = domain.createPersonal(facts, uid('p'))
+  if (!updateState(s => { s.personal.unshift(card); if (draftId) s.drafts = s.drafts.filter(d => d.id !== draftId) })) throw new Error(SAVE_ERROR)
+  return card
+}
+export const removeRecording = id => updateState(s => domain.deleteRecording(s, id))

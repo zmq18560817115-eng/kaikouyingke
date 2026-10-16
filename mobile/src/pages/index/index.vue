@@ -1,8 +1,8 @@
 <template>
 <view class="app-shell" :class="{'large-type':state.settings.largeText}" :style="{'--status-gap':statusGap+'px'}">
-  <view v-if="isMain" class="main-view">
+  <view v-if="isMain" class="main-view" :class="{'with-action-bar':tab==='tourist'}">
     <view class="landscape-header" :class="{'home-header':tab==='home'}">
-      <image class="landscape" src="/static/images/landscape.jpg" mode="aspectFill" />
+      <image class="landscape" :src="img('landscape')" mode="aspectFill" />
       <view class="hero-copy"><text class="hero-title">{{tabTitle}}</text><text class="hero-subtitle">{{tabSubtitle}}</text></view>
     </view>
 
@@ -18,7 +18,7 @@
         <button role="button" class="shortcut green" @click="switchTab('review')"><AppIcon name="book-open" :size="57"/><text>复习</text></button>
       </view>
       <button role="button" class="card field-task-card" @click="go('task')"><view class="section-title task-caption"><AppIcon name="clipboard-text" :size="24"/><text>今日真实任务</text></view><view class="task-body"><text>{{currentScenario.task}}</text><image :src="img('product')" mode="aspectFit" /></view></button>
-      <view v-if="!state.profile.name||state.profile.name==='朋友'" class="onboarding-tip"><AppIcon name="hand-waving" :size="22"/><text @click="go('profile-edit')">先告诉我们，你平时经营什么？</text><AppIcon name="caret-right" :size="18"/></view>
+      <button role="button" v-if="!state.profile.name||state.profile.name==='朋友'" class="onboarding-tip" @click="go('profile-edit')"><AppIcon name="hand-waving" :size="22"/><text>先告诉我们，你平时经营什么？</text><AppIcon name="caret-right" :size="18"/></button>
     </view>
 
     <view v-else-if="tab==='courses'" class="main-content">
@@ -38,7 +38,7 @@
       <button role="button" class="card scenario-choice" @click="showScenarioPicker=true"><view><text class="card-title">{{selectedScenario.title}}</text><text class="muted small">{{selectedScenario.subtitle}}</text></view><AppIcon name="caret-down"/><image :src="img(selectedScenario.image)" mode="aspectFit"/></button>
       <SectionTitle title="难度"/>
       <view class="segmented"><button role="button" v-for="(d,i) in difficulties" :key="d" :class="{active:difficulty===i}" @click="difficulty=i">{{d}}</button></view><text class="difficulty-help muted">{{['提供完整回答提示','提供图片与关键词提示','只显示问题，可主动请求帮助'][difficulty]}}</text>
-      <button role="button" class="primary" @click="startDialogue()">开始模拟接待<AppIcon name="caret-right" tone="white" :size="22"/></button>
+      <view class="tourist-start-bar"><text class="small muted">{{selectedScenario.title}} · {{difficulties[difficulty]}}</text><button role="button" class="primary" @click="startDialogue()">开始模拟接待<AppIcon name="caret-right" tone="white" :size="22"/></button></view>
       <text class="service-note">当前使用课程库中的固定情境问答，可随时重听。</text>
     </view>
 
@@ -85,10 +85,10 @@
         <template v-if="stageDefinition.id==='listen'"><text class="small muted">游客想了解什么？</text><button role="button" v-for="(answer,i) in activeLesson.choices" :key="i" class="answer-option" :class="{chosen:answerChoice===i,correct:answerSubmitted&&i===activeLesson.answer}" @click="!answerSubmitted&&(answerChoice=i)">{{answer}}<AppIcon v-if="answerSubmitted&&i===activeLesson.answer" name="check"/></button><view v-if="answerSubmitted" class="feedback-message" :class="answerChoice===activeLesson.answer?'green':'amber'">{{answerChoice===activeLesson.answer?'听懂了，继续练习关键词。':'这次是在问“'+activeLesson.choices[activeLesson.answer]+'”，可以再听一次。'}}</view><button role="button" class="primary" :disabled="answerChoice===null" @click="answerSubmitted?nextPractice():checkAnswer()">{{answerSubmitted?'继续':'确认答案'}}</button></template>
         <template v-else>
           <view v-if="stageDefinition.id==='retell'" class="hint-control"><text class="small muted">提示</text><button role="button" v-for="(h,i) in ['仅看图','关键词','完整示范']" :key="h" :class="{chosen:hintLevel===i}" @click="hintLevel=i">{{h}}</button></view>
-          <view class="recorder"><button role="button" class="record-button" :disabled="recordStarting" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':'点击开始说'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'录音已保存在本机':'说完后，再点一次结束'}}</text></view>
+          <view class="recorder"><button role="button" class="record-button" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'点击开始说'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'录音已保存在本机':'说完后，再点一次结束'}}</text></view>
           <button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)"><AppIcon name="play"/>听我的录音</button>
           <view v-if="lastRecording" class="feedback-message blue"><text>录音已保存，可以对照示范回听。</text><text class="small">语音分析尚未连接，本次不生成AI分数或掌握结论。</text></view>
-          <button role="button" class="primary" :disabled="recording" @click="finishSpoken">{{lastRecording?'保存并继续':'我已开口练习，继续'}}</button><text class="service-note">手动完成仅记为练习记录，独立接待能力需要进一步验证。</text>
+          <button role="button" class="primary" :disabled="recording||recordStarting||recordSaving" @click="finishSpoken">{{lastRecording?'保存并继续':'我已开口练习，继续'}}</button><text class="service-note">手动完成仅记为练习记录，独立接待能力需要进一步验证。</text>
         </template>
       </template>
 
@@ -97,7 +97,7 @@
       </template>
 
       <template v-else-if="page==='dialogue'">
-        <view class="dialogue-meta"><view class="avatar-small"><image :src="img(selectedRole.image)" mode="aspectFill"/></view><view><text class="strong">{{selectedRole.title}}</text><text class="small muted">{{selectedScenario.title}} · {{difficulties[difficulty]}}</text></view><text class="badge blue">{{dialogueIndex+1}} / {{dialogueQuestions.length}}</text></view><view class="card visitor-question"><text class="eyebrow">游客问</text><text class="spoken-sentence">{{dialogueQuestions[dialogueIndex]}}</text><view class="audio-actions"><button role="button" @click="playText(dialogueQuestions[dialogueIndex])"><AppIcon name="speaker-high"/>再听一次</button><button role="button" @click="playText(dialogueQuestions[dialogueIndex],true)"><AppIcon name="gauge"/>慢一点</button></view></view><view v-if="difficulty<2||showHelp" class="card green"><text class="eyebrow">{{difficulty===0?'回答提示':'关键词提示'}}</text><text class="body-copy">{{difficulty===0?'按你确认的真实情况，回应游客想了解的信息。':selectedScenario.facts.join('　')}}</text></view><view class="recorder"><button role="button" class="record-button" :disabled="recordStarting" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':'开始回答'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'本次回答已保存':'可以录音，也可以先自己说一遍'}}</text></view><button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)">回听这次回答</button><button role="button" class="primary" :disabled="recording" @click="nextDialogue">{{dialogueIndex===dialogueQuestions.length-1?'完成这轮接待':'我已回答，继续'}}</button><button role="button" class="text-button" @click="showHelp=!showHelp">{{showHelp?'收起提示':'我需要一点提示'}}</button><text class="service-note">课程固定问答，不会把手动完成视为AI已听懂。</text>
+        <view class="dialogue-meta"><view class="avatar-small"><image :src="img(selectedRole.image)" mode="aspectFill"/></view><view><text class="strong">{{selectedRole.title}}</text><text class="small muted">{{selectedScenario.title}} · {{difficulties[difficulty]}}</text></view><text class="badge blue">{{dialogueIndex+1}} / {{dialogueQuestions.length}}</text></view><view class="card visitor-question"><text class="eyebrow">游客问</text><text class="spoken-sentence">{{dialogueQuestions[dialogueIndex]}}</text><view class="audio-actions"><button role="button" @click="playText(dialogueQuestions[dialogueIndex])"><AppIcon name="speaker-high"/>再听一次</button><button role="button" @click="playText(dialogueQuestions[dialogueIndex],true)"><AppIcon name="gauge"/>慢一点</button></view></view><view v-if="difficulty<2||showHelp" class="card green"><text class="eyebrow">{{difficulty===0?'回答提示':'关键词提示'}}</text><text class="body-copy">{{difficulty===0?'按你确认的真实情况，回应游客想了解的信息。':selectedScenario.facts.join('　')}}</text></view><view class="recorder"><button role="button" class="record-button" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'开始回答'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'本次回答已保存':'可以录音，也可以先自己说一遍'}}</text></view><button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)">回听这次回答</button><button role="button" class="primary" :disabled="recording||recordStarting||recordSaving" @click="nextDialogue">{{dialogueIndex===dialogueQuestions.length-1?'完成这轮接待':'我已回答，继续'}}</button><button role="button" class="text-button" @click="showHelp=!showHelp">{{showHelp?'收起提示':'我需要一点提示'}}</button><text class="service-note">课程固定问答，不会把手动完成视为AI已听懂。</text>
       </template>
 
       <template v-else-if="page==='recap'">
@@ -105,11 +105,11 @@
       </template>
 
       <template v-else-if="page==='say'">
-        <text class="detail-title">想向游客介绍什么？</text><text class="muted">用熟悉的语言记录，再核对重要信息。</text><view class="card say-card"><text class="body-copy">自家的商品、制作方法，<br/>或上次没说出来的话。</text><view class="recorder"><button role="button" class="record-button" :disabled="recordStarting" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':'录下想说的话'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'录音已保存':'只在你主动开始后采集声音'}}</text></view><button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)">听一听录音</button></view><view class="two-column"><button role="button" class="secondary" @click="choosePhoto"><AppIcon name="camera"/>拍照或选图</button><button role="button" class="secondary" @click="go('issue')"><AppIcon name="note"/>记录问题</button></view><image v-if="photoPath" class="user-photo" :src="photoPath" mode="aspectFit"/><view class="feedback-message blue"><text class="small">录音保存在本机，图片仅辅助本次核对，不会解析或上传。请自行补充事实，或请熟悉双语的家人协助填写。</text></view><button role="button" class="primary" :disabled="recording" @click="go('facts')">核对要介绍的信息<AppIcon name="caret-right" tone="white" :size="20"/></button><button role="button" class="text-button" @click="saveDraft">保存草稿，下次继续</button>
+        <text class="detail-title">想向游客介绍什么？</text><text class="muted">用熟悉的语言记录，再核对重要信息。</text><view class="card say-card"><text class="body-copy">自家的商品、制作方法，<br/>或上次没说出来的话。</text><view class="recorder"><button role="button" class="record-button" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'录下想说的话'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'录音已保存':'只在你主动开始后采集声音'}}</text></view><button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)">听一听录音</button></view><view class="two-column"><button role="button" class="secondary" @click="choosePhoto"><AppIcon name="camera"/>拍照或选图</button><button role="button" class="secondary" @click="go('issue')"><AppIcon name="note"/>记录问题</button></view><image v-if="photoPath" class="user-photo" :src="photoPath" mode="aspectFit"/><view class="feedback-message blue"><text class="small">录音保存在本机，图片仅辅助本次核对，不会解析或上传。请自行补充事实，或请熟悉双语的家人协助填写。</text></view><button role="button" class="primary" :disabled="recording||recordStarting||recordSaving" @click="go('facts')">核对要介绍的信息<AppIcon name="caret-right" tone="white" :size="20"/></button><button role="button" class="text-button" @click="saveDraft">保存草稿，下次继续</button>
       </template>
 
       <template v-else-if="page==='facts'">
-        <text class="detail-title">先确认自己的经营信息</text><text class="muted small">不知道的可以留空，不会自动补成事实。</text><view class="card form-card"><label class="field-label">商品或服务名称 <text class="required">必填</text></label><input v-model="facts.name" aria-label="商品或服务名称" maxlength="30" placeholder="例如：自家的手工商品"/><label class="field-label">主要材料</label><input v-model="facts.material" aria-label="主要材料" maxlength="80" placeholder="只填写你确认的材料"/><label class="field-label">制作方法</label><textarea v-model="facts.process" aria-label="制作方法" maxlength="200" placeholder="用自己的话写两三步，也可以请家人协助"/><view class="two-column"><view><label class="field-label">价格（元）</label><input v-model="facts.price" aria-label="价格（元）" type="digit" placeholder="可不填"/></view><view><label class="field-label">计价单位</label><input v-model="facts.unit" aria-label="计价单位" maxlength="12" placeholder="例如：每份"/></view></view></view><view class="feedback-message amber"><text class="small">文化、宗教、历史及健康结论需专业审核。当前个人表达卡只整理一般经营介绍。</text></view><button role="button" class="primary" :disabled="!facts.name.trim()" @click="generatePersonal">信息确认，整理成表达</button>
+        <text class="detail-title">先确认自己的经营信息</text><text class="muted small">不知道的可以留空，不会自动补成事实。</text><view class="card form-card"><label class="field-label">商品或服务名称 <text class="required">必填</text></label><input v-model="facts.name" aria-label="商品或服务名称" maxlength="30" placeholder="例如：自家的手工商品"/><label class="field-label">主要材料</label><input v-model="facts.material" aria-label="主要材料" maxlength="80" placeholder="只填写你确认的材料"/><label class="field-label">制作方法</label><textarea v-model="facts.process" aria-label="制作方法" maxlength="200" placeholder="用自己的话写两三步，也可以请家人协助"/><view class="two-column"><view><label class="field-label">价格（元）</label><input v-model="facts.price" aria-label="价格（元）" type="digit" placeholder="可不填"/></view><view><label class="field-label">计价单位</label><input v-model="facts.unit" aria-label="计价单位" maxlength="12" placeholder="例如：每份"/></view></view></view><view class="feedback-message amber"><text class="small">文化、宗教、历史及健康结论需专业审核。当前个人表达卡只整理一般经营介绍。</text></view><button role="button" class="primary" :disabled="!facts.name.trim()" @click="generatePersonal">信息确认，整理成表达</button><button role="button" class="secondary" @click="saveDraft">保存草稿，下次继续</button>
       </template>
 
       <template v-else-if="page==='personal-card'">
@@ -125,11 +125,11 @@
       </template>
 
       <template v-else-if="page==='review-session'">
-        <view v-if="reviewSessionItems.length" class="card"><text class="eyebrow">本次复习 {{reviewDone+1}} / {{reviewStartCount}}</text><text class="spoken-sentence">{{reviewSessionItems[0].title}}</text><text class="muted">{{reviewSessionItems[0].reason}}</text><button role="button" class="secondary" @click="playText(reviewSessionItems[0].title)">听一遍问题</button><text class="body-copy review-prompt">先想一想，再自己说一遍。需要时可以看关键词。</text><button role="button" class="primary" @click="finishReview(reviewSessionItems[0]);reviewDone++">我已练习，下一项</button></view><view v-else class="completion-head"><view class="completion-icon green"><AppIcon name="check" :size="40"/></view><text class="detail-title">本次复习完成了</text><text class="muted">已记录 {{reviewDone}} 项复习，下次再慢慢练。</text><button role="button" class="primary" @click="switchTab('review')">回到复习首页</button></view>
+        <view v-if="reviewSessionItems.length" class="card"><text class="eyebrow">本次复习 {{reviewDone+1}} / {{reviewStartCount}}</text><text class="spoken-sentence">{{reviewSessionItems[0].title}}</text><text class="muted">{{reviewSessionItems[0].reason}}</text><button role="button" class="secondary" @click="playText(reviewSessionItems[0].title)">听一遍问题</button><text class="body-copy review-prompt">先想一想，再自己说一遍。需要时可以看关键词。</text><button role="button" class="primary" @click="nextReview">我已练习，下一项</button></view><view v-else class="completion-head"><view class="completion-icon green"><AppIcon name="check" :size="40"/></view><text class="detail-title">本次复习完成了</text><text class="muted">已记录 {{reviewDone}} 项复习，下次再慢慢练。</text><button role="button" class="primary" @click="switchTab('review')">回到复习首页</button></view>
       </template>
 
       <template v-else-if="page==='issue'">
-        <text class="detail-title">把没说出的话记下来</text><text class="muted">接待后自己描述即可，不需要录下游客。</text><view class="card"><label class="field-label">这次遇到了什么问题？</label><textarea v-model="issueText" aria-label="这次遇到了什么问题" maxlength="200" placeholder="例如：游客问怎么制作，我不知道该怎么回答。"/><view class="recorder"><button role="button" class="record-button small-record" :disabled="recordStarting" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white"/><text>{{recording?'点击结束':recordStarting?'正在打开':'口述记录'}}</text></button><text class="record-time">{{lastRecording?'录音已保存，可在录音与隐私中回听':'也可以请家人协助补充简短说明'}}</text></view></view><button role="button" class="primary" :disabled="!issueText.trim()&&!lastRecording" @click="saveIssue">加入下次复习</button>
+        <text class="detail-title">把没说出的话记下来</text><text class="muted">接待后自己描述即可，不需要录下游客。</text><view class="card"><label class="field-label">这次遇到了什么问题？</label><textarea v-model="issueText" aria-label="这次遇到了什么问题" maxlength="200" placeholder="例如：游客问怎么制作，我不知道该怎么回答。"/><view class="recorder"><button role="button" class="record-button small-record" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'口述记录'}}</text></button><text class="record-time">{{lastRecording?'录音已保存，可在录音与隐私中回听':'也可以请家人协助补充简短说明'}}</text></view></view><button role="button" class="primary" :disabled="recordStarting||recordSaving||(!issueText.trim()&&!lastRecording&&!recording)" @click="saveIssue">加入下次复习</button>
       </template>
 
       <template v-else-if="page==='task'">
@@ -145,7 +145,7 @@
       </template>
 
       <template v-else-if="page==='offline'">
-        <view class="feedback-message green"><AppIcon name="check-circle"/><text>基础课程已随应用内置，可离线打开文字与图片。</text></view><view v-for="s in scenarios" :key="s.id" class="card offline-card"><AppIcon :name="s.icon" :size="34"/><view><text class="card-title">{{s.title}}</text><text class="small muted">4个短课 · 内容版本1.0 · 已内置</text></view><text class="badge green">可离线</text></view><view class="card"><text class="card-title">离线时可以做什么</text><view class="list-line">浏览课程、看图、自行开口与保存录音</view><view class="list-line">查看个人情境卡和已有学习进度</view><text class="muted small">浏览器示范声音取决于设备语音包；小程序音频示范需后续接入经过审核的音频文件。实时AI分析需要联网服务。</text></view>
+        <view class="feedback-message green"><AppIcon name="check-circle"/><text>{{webPlatform?'当前网页需要联网打开，学习记录保存在本机。':'基础课程已随应用内置，可离线打开文字与图片。'}}</text></view><view v-for="s in scenarios" :key="s.id" class="card offline-card"><AppIcon :name="s.icon" :size="34"/><view><text class="card-title">{{s.title}}</text><text class="small muted">4个短课 · 内容版本1.0 · 已内置</text></view><text class="badge green">{{webPlatform?'已内置':'可离线'}}</text></view><view class="card"><text class="card-title">{{webPlatform?'打开后可以做什么':'离线时可以做什么'}}</text><view class="list-line">浏览课程、看图、自行开口与保存录音</view><view class="list-line">查看个人情境卡和已有学习进度</view><text class="muted small">浏览器示范声音取决于设备语音包；小程序音频示范需后续接入经过审核的音频文件。实时AI分析需要联网服务。</text></view>
       </template>
 
       <template v-else-if="page==='privacy'">
@@ -153,7 +153,7 @@
       </template>
 
       <template v-else-if="page==='settings'">
-        <view class="card"><view class="setting-row"><view><text class="list-title">大字号</text><text class="small muted">让正文和操作更容易看清</text></view><button role="switch" aria-label="大字号" :aria-checked="state.settings.largeText" class="mini-button setting-toggle" :class="state.settings.largeText?'green':'neutral'" @click="state.settings.largeText=!state.settings.largeText;persist()">{{state.settings.largeText?'已开启':'开启'}}</button></view><view class="setting-row"><view><text class="list-title">示范声音</text><text class="small muted">由你主动点击播放</text></view><button role="switch" aria-label="示范声音" :aria-checked="state.settings.voice" class="mini-button setting-toggle" :class="state.settings.voice?'green':'neutral'" @click="state.settings.voice=!state.settings.voice;persist()">{{state.settings.voice?'已开启':'开启'}}</button></view></view><view class="card"><text class="card-title">关于开口迎客</text><text class="body-copy">围绕真实旅游接待练习普通话，关注游客能否听懂，不以消除口音为目标。</text><text class="small muted">课程基于项目需求文档V2.0，首期内容版本1.0。</text></view><view class="card"><text class="card-title">当前服务范围</text><text class="body-copy">课程、固定问答、个人表达整理和本机记录可用。真实AI评价、地区母语示范、账号云同步与人工审核尚未连接。</text></view>
+        <view class="card"><view class="setting-row"><view><text class="list-title">大字号</text><text class="small muted">让正文和操作更容易看清</text></view><button role="switch" aria-label="大字号" :aria-checked="state.settings.largeText" class="mini-button setting-toggle" :class="state.settings.largeText?'green':'neutral'" @click="changeSetting('largeText')">{{state.settings.largeText?'已开启':'开启'}}</button></view><view class="setting-row"><view><text class="list-title">示范声音</text><text class="small muted">由你主动点击播放</text></view><button role="switch" aria-label="示范声音" :aria-checked="state.settings.voice" class="mini-button setting-toggle" :class="state.settings.voice?'green':'neutral'" @click="changeSetting('voice')">{{state.settings.voice?'已开启':'开启'}}</button></view></view><view class="card"><text class="card-title">关于开口迎客</text><text class="body-copy">围绕真实旅游接待练习普通话，关注游客能否听懂，不以消除口音为目标。</text><text class="small muted">课程基于项目需求文档V2.0，首期内容版本1.0。</text></view><view class="card"><text class="card-title">当前服务范围</text><text class="body-copy">课程、固定问答、个人表达整理和本机记录可用。真实AI评价、地区母语示范、账号云同步与人工审核尚未连接。</text></view>
       </template>
     </view>
   </view>
@@ -167,18 +167,24 @@ import {ref,computed,onUnmounted} from 'vue'
 import AppIcon from '../../components/AppIcon.vue'
 import PageHeader from '../../components/PageHeader.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
-import {state,persist,markComplete,queueReview,savePersonal,removeRecording,uid,localDay} from '../../store'
+import {state,updateState,markComplete,queueReview,savePersonal,removeRecording,uid,localDay} from '../../store'
 import {scenarios,stages,publicScenes,occupations,tourists,reviewTypes,reflections,getScenario,getLesson,getDialogueQuestions} from '../../data/library'
+import domain from '../../domain.mjs'
+import {staticAsset} from '../../services/assets'
 import {startRecording,stopRecording,storeAudio,playRecording,deleteAudio,speak,stopPlayback,onInterrupted} from '../../services/audio'
 const tab=ref('home'),page=ref('main'),history=ref([]),selectedScenarioId=ref(state.currentScenario),selectedTourist=ref('curious'),difficulty=ref(1),showScenarioPicker=ref(false)
-const lessonId=ref(state.checkpoint?.lessonId||'product-1'),practiceStep=ref(state.checkpoint?.step||0),answerChoice=ref(null),answerSubmitted=ref(false),hintLevel=ref(2),recording=ref(false),recordStarting=ref(false),recordSeconds=ref(0),lastRecordingId=ref(null),showHelp=ref(false),dialogueIndex=ref(0),dialogueAnswers=ref([]),personalDialogue=ref(false),dialogueFromLesson=ref(false),reviewSessionIds=ref([]),reviewCategory=ref('all'),reviewDone=ref(0),reviewStartCount=ref(0),photoPath=ref(''),issueText=ref(''),reflectionChoice=ref(null),activePersonalId=ref(null),personalVersion=ref('short')
+const lessonId=ref(state.checkpoint?.lessonId||'product-1'),practiceStep=ref(state.checkpoint?.step||0),answerChoice=ref(null),answerSubmitted=ref(false),hintLevel=ref(2),recording=ref(false),recordStarting=ref(false),recordSaving=ref(false),recordSeconds=ref(0),lastRecordingId=ref(null),showHelp=ref(false),dialogueIndex=ref(0),dialogueAnswers=ref([]),personalDialogue=ref(false),dialogueFromLesson=ref(false),reviewSessionIds=ref([]),reviewCategory=ref('all'),reviewDone=ref(0),reviewStartCount=ref(0),photoPath=ref(''),issueText=ref(''),reflectionChoice=ref(null),activePersonalId=ref(null),activeDraftId=ref(null),personalVersion=ref('short')
 const facts=ref({name:'',material:'',process:'',price:'',unit:''}),editProfile=ref({...state.profile})
-let recordTimer,autoRecordTimer,cancelPendingRecord=false
+let recordTimer,autoRecordTimer,pendingRecordSave,cancelPendingRecord=false
+let webPlatform=false
+// #ifdef H5
+webPlatform=true
+// #endif
 let statusGap=0
 // #ifndef H5
 statusGap=uni.getSystemInfoSync().statusBarHeight||24
 // #endif
-const img=name=>'/static/images/'+name+'.jpg'
+const img=name=>staticAsset('images/'+name+'.jpg')
 const tabs=[{id:'home',title:'首页',icon:'house'},{id:'courses',title:'课程',icon:'book-open'},{id:'tourist',title:'AI游客',icon:'user-circle'},{id:'review',title:'复习',icon:'note'},{id:'me',title:'我的',icon:'user'}]
 const difficulties=['初级','中级','高级']
 const isMain=computed(()=>page.value==='main')
@@ -206,57 +212,174 @@ function toast(title){uni.showToast({title,icon:'none',duration:2600})}
 function completedIn(s){return s.lessons.filter(l=>state.completed.includes(l.id)).length}
 function stageById(id){return stages.find(s=>s.id===id)||stages[0]}
 function scrollTop(){uni.pageScrollTo({scrollTop:0,duration:0})}
-async function beforeNavigate(){stopPlayback();if(recordStarting.value)cancelPendingRecord=true;if(recording.value)await endRecord()}
-async function go(next,params={}){await beforeNavigate();history.value.push({page:page.value,scenarioId:selectedScenarioId.value});if(params.scenarioId)selectedScenarioId.value=params.scenarioId;page.value=next;if(next==='profile-edit')editProfile.value={...state.profile};if(next==='issue'){lastRecordingId.value=null;issueText.value=''};scrollTop()}
-async function back(){await beforeNavigate();const prev=history.value.pop();page.value=prev?.page||'main';if(prev?.scenarioId)selectedScenarioId.value=prev.scenarioId;scrollTop()}
-async function switchTab(id){await beforeNavigate();page.value='main';tab.value=id;history.value=[];selectedScenarioId.value=state.currentScenario;scrollTop()}
+async function beforeNavigate(){
+  stopPlayback()
+  if(recordStarting.value)cancelPendingRecord=true
+  if(recording.value)return (await endRecord())!==false
+  if(pendingRecordSave)return (await pendingRecordSave)!==false
+  return true
+}
+async function go(next,params={}){
+  if(!await beforeNavigate())return
+  history.value.push({page:page.value,scenarioId:selectedScenarioId.value})
+  if(params.scenarioId)selectedScenarioId.value=params.scenarioId
+  page.value=next
+  if(next==='profile-edit')editProfile.value={...state.profile}
+  if(next==='issue'){lastRecordingId.value=null;issueText.value=''}
+  scrollTop()
+}
+async function back(){if(!await beforeNavigate())return;const prev=history.value.pop();page.value=prev?.page||'main';if(prev?.scenarioId)selectedScenarioId.value=prev.scenarioId;scrollTop()}
+async function switchTab(id){if(!await beforeNavigate())return;page.value='main';tab.value=id;history.value=[];selectedScenarioId.value=state.currentScenario;scrollTop()}
 function openScenario(id){go('scenario',{scenarioId:id})}
 function futureNotice(){toast('这一情境还在核对内容，先练已开放的课程。')}
-function chooseOccupation(o){if(o.future)return futureNotice();state.profile.occupation=o.id;state.currentScenario='product';persist();openScenario('product')}
-function continueLearning(){if(state.checkpoint){lessonId.value=state.checkpoint.lessonId;practiceStep.value=state.checkpoint.step;selectedScenarioId.value=scenarios.find(s=>s.lessons.some(l=>l.id===lessonId.value)).id;resetPractice();go('practice')}else{const l=currentScenario.value.lessons.find(l=>!state.completed.includes(l.id))||currentScenario.value.lessons[0];startLesson(l.id)}}
-function resetPractice(){answerChoice.value=null;answerSubmitted.value=false;lastRecordingId.value=null;hintLevel.value=2}
-function startLesson(id){lessonId.value=id;practiceStep.value=0;selectedScenarioId.value=scenarios.find(s=>s.lessons.some(l=>l.id===id)).id;state.currentScenario=selectedScenarioId.value;resetPractice();saveCheckpoint();if(stageDefinition.value.id==='dialogue')startDialogue(true);else go('practice')}
-function saveCheckpoint(){state.checkpoint={lessonId:lessonId.value,step:practiceStep.value};persist()}
-function checkAnswer(){answerSubmitted.value=true;state.attempts.push({id:uid('a'),type:'listening',lessonId:lessonId.value,correct:answerChoice.value===activeLesson.value.answer,date:localDay()});if(answerChoice.value!==activeLesson.value.answer)queueReview({target:lessonId.value,type:'listening',title:activeLesson.value.question,reason:'这道游客意图题需要再听一听'});persist()}
-function nextPractice(){if(practiceStep.value<activeLesson.value.stages.length-1){practiceStep.value++;resetPractice();saveCheckpoint();scrollTop()}else finishLesson()}
-function finishLesson(){markComplete(lessonId.value);page.value='lesson-result';scrollTop()}
-function finishSpoken(){state.attempts.push({id:uid('a'),type:stageDefinition.value.id,lessonId:lessonId.value,recordingId:lastRecordingId.value,hint:hintLevel.value,source:'self_report',date:localDay()});persist();nextPractice()}
-function startNextLesson(){if(nextLesson.value)startLesson(nextLesson.value.id);else go('task')}
-function playText(text,slow=false){if(!state.settings.voice)return toast('示范声音已关闭，可在帮助与设置中开启。');if(!speak(text,slow))toast('当前设备未提供这段示范音频，可先看句子练习。')}
-async function toggleRecord(){
- if(recordStarting.value)return
- if(recording.value)return endRecord()
- recordStarting.value=true;cancelPendingRecord=false
- try{lastRecordingId.value=null;await startRecording();if(cancelPendingRecord){const audio=await stopRecording();if(audio)await deleteAudio({id:'cancelled',path:audio.path});return}recordSeconds.value=0;recording.value=true;recordTimer=setInterval(()=>recordSeconds.value++,1000);autoRecordTimer=setTimeout(()=>endRecord(),59000)}catch(e){toast(e.message||'没有开启麦克风，可以先听示范。')}finally{recordStarting.value=false}
+function chooseOccupation(o){if(o.future)return futureNotice();if(updateState(s=>{s.profile.occupation=o.id;s.currentScenario='product'}))openScenario('product')}
+function continueLearning(){
+  if(state.checkpoint){
+    lessonId.value=state.checkpoint.lessonId;practiceStep.value=state.checkpoint.step
+    selectedScenarioId.value=scenarios.find(s=>s.lessons.some(l=>l.id===lessonId.value)).id
+    resetPractice()
+    if(stageDefinition.value.id==='dialogue')startDialogue(true);else go('practice')
+  }else startLesson((currentScenario.value.lessons.find(l=>!state.completed.includes(l.id))||currentScenario.value.lessons[0]).id)
 }
-async function endRecord(){if(!recording.value)return;clearInterval(recordTimer);clearTimeout(autoRecordTimer);recording.value=false;try{const audio=await stopRecording();if(!audio)return;const id=uid('audio');await storeAudio(id,audio);const r={id,path:audio.path,title:page.value==='say'?'我想说的内容':page.value==='issue'?'接待问题记录':page.value==='dialogue'?'游客应答':activeLesson.value.title,duration:Math.max(recordSeconds.value,1),date:localDay()};state.recordings.unshift(r);lastRecordingId.value=id;persist()}catch(e){toast('录音未能保存，请检查本机空间后重试。')}}
-async function playSaved(r){try{await playRecording(r)}catch(e){toast(e.message||'这条录音暂时无法播放。')}}
-function startDialogue(fromCourse=false){fromCourse=fromCourse===true;dialogueFromLesson.value=fromCourse;personalDialogue.value=false;dialogueIndex.value=0;dialogueAnswers.value=[];showHelp.value=false;lastRecordingId.value=null;if(!fromCourse)selectedScenarioId.value=selectedScenarioId.value||state.currentScenario;go('dialogue')}
-function nextDialogue(){dialogueAnswers.value.push(lastRecordingId.value||null);lastRecordingId.value=null;state.attempts.push({id:uid('a'),type:'dialogue',source:'self_report',scenarioId:selectedScenarioId.value,date:localDay()});persist();if(dialogueIndex.value<dialogueQuestions.value.length-1){dialogueIndex.value++;showHelp.value=false;scrollTop()}else{if(dialogueFromLesson.value&&activeLesson.value.stages.includes('dialogue')&&state.checkpoint)markComplete(lessonId.value);page.value='recap';scrollTop()}}
-function addDialogueReview(q){queueReview({target:selectedScenarioId.value+q,type:'expression',title:q,reason:'来自本次游客模拟'});toast('已加入复习')}
-function openSay(){facts.value={name:'',material:'',process:'',price:'',unit:''};photoPath.value='';lastRecordingId.value=null;go('say')}
-function choosePhoto(){uni.chooseImage({count:1,sizeType:['compressed'],success:r=>{photoPath.value=r.tempFilePaths[0]}})}
-function saveDraft(){state.drafts.unshift({id:uid('d'),...facts.value,recordingId:lastRecordingId.value});persist();toast('草稿已保存');switchTab('home')}
-function restoreDraft(d){facts.value={name:d.name||'',material:d.material||'',process:d.process||'',price:d.price||'',unit:d.unit||''};lastRecordingId.value=d.recordingId;go('facts')}
-function generatePersonal(){if(facts.value.price&&!facts.value.unit)return toast('填写了价格后，还需要确认计价单位。');try{const c=savePersonal(facts.value);activePersonalId.value=c.id;personalVersion.value='short';go('personal-card')}catch(e){toast(e.message)}}
+function resetPractice(){answerChoice.value=null;answerSubmitted.value=false;lastRecordingId.value=null;hintLevel.value=2}
+function startLesson(id){
+  const scenario=scenarios.find(s=>s.lessons.some(l=>l.id===id));if(!scenario)return
+  if(!updateState(s=>{s.currentScenario=scenario.id;s.checkpoint={lessonId:id,step:0}}))return
+  lessonId.value=id;practiceStep.value=0;selectedScenarioId.value=scenario.id;resetPractice()
+  if(stageDefinition.value.id==='dialogue')startDialogue(true);else go('practice')
+}
+function checkAnswer(){
+  if(answerChoice.value===null||answerSubmitted.value)return
+  const correct=answerChoice.value===activeLesson.value.answer
+  if(updateState(s=>{
+    s.attempts.push({id:uid('a'),type:'listening',lessonId:lessonId.value,correct,date:localDay()})
+    if(!correct)domain.addReview(s,{target:lessonId.value,type:'listening',title:activeLesson.value.question,reason:'这道游客意图题需要再听一听'})
+  }))answerSubmitted.value=true
+}
+function nextPractice(){
+  if(practiceStep.value>=activeLesson.value.stages.length-1)return finishLesson()
+  const next=practiceStep.value+1
+  if(!updateState(s=>{s.checkpoint={lessonId:lessonId.value,step:next}}))return
+  practiceStep.value=next;resetPractice()
+  if(stageDefinition.value.id==='dialogue')startDialogue(true);else scrollTop()
+}
+function finishLesson(){if(markComplete(lessonId.value)){page.value='lesson-result';scrollTop()}}
+function finishSpoken(){
+  if(recording.value||recordStarting.value||recordSaving.value)return
+  const next=practiceStep.value+1,finished=next>=activeLesson.value.stages.length
+  if(!updateState(s=>{
+    s.attempts.push({id:uid('a'),type:stageDefinition.value.id,lessonId:lessonId.value,recordingId:lastRecordingId.value,hint:hintLevel.value,source:'self_report',date:localDay()})
+    if(finished)domain.completeLesson(s,lessonId.value,localDay());else s.checkpoint={lessonId:lessonId.value,step:next}
+  }))return
+  if(finished){page.value='lesson-result';scrollTop()}else{practiceStep.value=next;resetPractice();if(stageDefinition.value.id==='dialogue')startDialogue(true);else scrollTop()}
+}
+function startNextLesson(){if(nextLesson.value)startLesson(nextLesson.value.id);else go('task')}
+function playbackBlocked(){if(recording.value||recordStarting.value||recordSaving.value){toast('请先结束并保存录音，再播放。');return true}return false}
+function playText(text,slow=false){if(playbackBlocked())return;if(!state.settings.voice)return toast('示范声音已关闭，可在帮助与设置中开启。');if(!speak(text,slow))toast('当前设备未提供这段示范音频，可先看句子练习。')}
+async function toggleRecord(){
+  if(recordStarting.value||recordSaving.value)return
+  if(recording.value)return endRecord()
+  recordStarting.value=true;cancelPendingRecord=false
+  try{
+    await startRecording()
+    if(cancelPendingRecord){const audio=await stopRecording();if(audio)await discardAudio(audio);return}
+    lastRecordingId.value=null;recordSeconds.value=0;recording.value=true
+    recordTimer=setInterval(()=>recordSeconds.value++,1000);autoRecordTimer=setTimeout(()=>endRecord(),59000)
+  }catch(e){toast(e.message||'没有开启麦克风，可以先听示范。')}finally{recordStarting.value=false}
+}
+async function discardAudio(audio){
+  // #ifdef H5
+  URL.revokeObjectURL(audio.path)
+  return
+  // #endif
+  // #ifndef H5
+  await deleteAudio({path:audio.path})
+  // #endif
+}
+async function endRecord(){
+  if(pendingRecordSave)return pendingRecordSave
+  if(!recording.value)return
+  clearInterval(recordTimer);clearTimeout(autoRecordTimer);recording.value=false;recordSaving.value=true
+  const title=page.value==='say'?'我想说的内容':page.value==='issue'?'接待问题记录':page.value==='dialogue'?'游客应答':activeLesson.value.title
+  const duration=Math.max(recordSeconds.value,1)
+  pendingRecordSave=(async()=>{
+    try{
+      const audio=await stopRecording();if(!audio){toast('没有录到声音，请重新录制。');return false}
+      const id=uid('audio');await storeAudio(id,audio)
+      const r={id,path:audio.path,title,duration,date:localDay()}
+      if(updateState(s=>s.recordings.unshift(r))){lastRecordingId.value=id;return true}
+      await deleteAudio(r);return false
+    }catch{toast('录音未能保存，请检查本机空间后重试。');return false}
+    finally{recordSaving.value=false;pendingRecordSave=null}
+  })()
+  return pendingRecordSave
+}
+async function playSaved(record){
+  if(playbackBlocked())return
+  const r=typeof record==='string'?state.recordings.find(r=>r.id===record):record
+  if(!r)return toast('这条录音已删除，可以重新录制。')
+  try{await playRecording(r)}catch(e){toast(e.message||'这条录音暂时无法播放。')}
+}
+function startDialogue(fromCourse=false){
+  dialogueFromLesson.value=fromCourse===true;personalDialogue.value=false;dialogueIndex.value=0;dialogueAnswers.value=[];showHelp.value=false;lastRecordingId.value=null;go('dialogue')
+}
+function nextDialogue(){
+  if(recording.value||recordStarting.value||recordSaving.value)return
+  const audioId=lastRecordingId.value||null,finished=dialogueIndex.value===dialogueQuestions.value.length-1
+  if(!updateState(s=>{
+    s.attempts.push({id:uid('a'),type:'dialogue',source:'self_report',scenarioId:selectedScenarioId.value,lessonId:dialogueFromLesson.value?lessonId.value:null,recordingId:audioId,date:localDay()})
+    if(finished&&dialogueFromLesson.value)domain.completeLesson(s,lessonId.value,localDay())
+  }))return
+  dialogueAnswers.value.push(audioId);lastRecordingId.value=null
+  if(finished)page.value='recap';else{dialogueIndex.value++;showHelp.value=false}
+  scrollTop()
+}
+function addDialogueReview(q){if(queueReview({target:selectedScenarioId.value+q,type:'expression',title:q,reason:'来自本次游客模拟'}))toast('已加入复习')}
+function openSay(){facts.value={name:'',material:'',process:'',price:'',unit:''};activeDraftId.value=null;photoPath.value='';lastRecordingId.value=null;go('say')}
+function choosePhoto(){uni.chooseImage({count:1,sizeType:['compressed'],success:r=>{photoPath.value=r.tempFilePaths[0]},fail:()=>toast('未选择照片，可以直接填写信息。')})}
+async function saveDraft(){
+  if(recordStarting.value)return toast('请先完成麦克风授权或关闭录音。')
+  if(!await beforeNavigate())return
+  if(!Object.values(facts.value).some(v=>String(v).trim())&&!lastRecordingId.value)return toast('先填写一点信息或录下想说的话。')
+  const draft={id:activeDraftId.value||uid('d'),...facts.value,recordingId:lastRecordingId.value}
+  if(!updateState(s=>{const i=s.drafts.findIndex(d=>d.id===draft.id);if(i<0)s.drafts.unshift(draft);else s.drafts[i]=draft}))return
+  activeDraftId.value=draft.id;toast('草稿已保存');switchTab('home')
+}
+function restoreDraft(d){facts.value={name:d.name||'',material:d.material||'',process:d.process||'',price:d.price||'',unit:d.unit||''};activeDraftId.value=d.id;lastRecordingId.value=d.recordingId;go('facts')}
+function generatePersonal(){
+  try{const c=savePersonal(facts.value,activeDraftId.value);activeDraftId.value=null;activePersonalId.value=c.id;personalVersion.value='short';go('personal-card')}catch(e){toast(e.message)}
+}
 function practicePersonal(){dialogueFromLesson.value=false;personalDialogue.value=true;dialogueIndex.value=0;dialogueAnswers.value=[];lastRecordingId.value=null;go('dialogue')}
-function deletePersonal(){uni.showModal({title:'删除这张情境卡？',content:'这张卡会从本机删除。已保存的录音可在录音与隐私中单独管理。',confirmColor:'#237a59',success:r=>{if(r.confirm){state.personal=state.personal.filter(p=>p.id!==activePersonalId.value);persist();page.value='personal-list'}}})}
+function deletePersonal(){uni.showModal({title:'删除这张情境卡？',content:'这张卡会从本机删除。已保存的录音可在录音与隐私中单独管理。',confirmColor:'#237a59',success:r=>{if(r.confirm&&updateState(s=>{s.personal=s.personal.filter(p=>p.id!==activePersonalId.value)}))page.value='personal-list'}})}
 function reviewCount(type){return state.reviews.filter(r=>!r.done&&r.type===type).length}
 function openCategory(type){reviewCategory.value=type;go('review-list')}
 function startReview(){reviewSessionIds.value=reviewQueue.value.map(r=>r.id);reviewStartCount.value=reviewQueue.value.length;reviewDone.value=0;go('review-session')}
-function finishReview(r){r.done=true;r.completedAt=localDay();persist();toast('已记录本次复习')}
-function saveIssue(){queueReview({target:uid('issue'),type:'real',title:issueText.value.trim()||'回听接待后记录的问题',reason:'来自你的真实接待记录',recordingId:lastRecordingId.value});issueText.value='';lastRecordingId.value=null;toast('已加入下次复习');switchTab('review')}
-function saveReflection(){state.reflections.push({id:uid('f'),scenarioId:selectedScenarioId.value,result:reflections[reflectionChoice.value],date:localDay()});persist();const needIssue=reflectionChoice.value===4;reflectionChoice.value=null;toast('接待记录已保存');if(needIssue)go('issue');else switchTab('home')}
-function saveProfile(){state.profile={...editProfile.value,name:editProfile.value.name.trim()||'朋友'};persist();toast('资料已保存');switchTab('me')}
-function confirmDeleteRecording(r){uni.showModal({title:'删除本机录音？',content:'录音删除后无法找回，学习进度会保留。这条录音未上传。',confirmColor:'#237a59',success:async result=>{if(result.confirm){try{await deleteAudio(r);removeRecording(r.id);toast('本机录音已删除')}catch{toast('没有删除成功，请稍后再试。')}}}})}
-function formatTime(s){return '00:'+String(s).padStart(2,'0')}
-onInterrupted(()=>{if(recording.value)endRecord()})
-uni.$on('app-hidden',()=>{if(recording.value)endRecord();stopPlayback()})
+function finishReview(r){if(!r||r.done)return false;const ok=updateState(s=>{const item=s.reviews.find(i=>i.id===r.id);item.done=true;item.completedAt=localDay()});if(ok)toast('已记录本次复习');return ok}
+function nextReview(){if(finishReview(reviewSessionItems.value[0]))reviewDone.value++}
+async function saveIssue(){
+  if(recordStarting.value)return
+  if(!await beforeNavigate())return
+  if(!issueText.value.trim()&&!lastRecording.value)return
+  if(!queueReview({target:uid('issue'),type:'real',title:issueText.value.trim()||'回听接待后记录的问题',reason:'来自你的真实接待记录',recordingId:lastRecordingId.value}))return
+  issueText.value='';lastRecordingId.value=null;toast('已加入下次复习');switchTab('review')
+}
+function saveReflection(){
+  if(reflectionChoice.value===null)return
+  if(!updateState(s=>s.reflections.push({id:uid('f'),scenarioId:selectedScenarioId.value,result:reflections[reflectionChoice.value],date:localDay()})))return
+  const needIssue=reflectionChoice.value===4;reflectionChoice.value=null;toast('接待记录已保存');if(needIssue)go('issue');else switchTab('home')
+}
+function saveProfile(){if(updateState(s=>{s.profile={...editProfile.value,name:editProfile.value.name.trim()||'朋友'}})){toast('资料已保存');switchTab('me')}}
+function changeSetting(key){if(updateState(s=>{s.settings[key]=!s.settings[key]})&&key==='voice'&&!state.settings.voice)stopPlayback()}
+function confirmDeleteRecording(r){uni.showModal({title:'删除本机录音？',content:'录音删除后无法找回，学习进度会保留。这条录音未上传。',confirmColor:'#237a59',success:async result=>{if(result.confirm){try{await deleteAudio(r);if(removeRecording(r.id))toast('本机录音已删除')}catch{toast('没有删除成功，请稍后再试。')}}}})}
+function formatTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function handleHidden(){if(recordStarting.value)cancelPendingRecord=true;if(recording.value)endRecord();stopPlayback()}
+onInterrupted(handleHidden)
+uni.$on('app-hidden',handleHidden)
 // #ifdef H5
-const hide=()=>{if(document.hidden){if(recording.value)endRecord();stopPlayback()}}
+const hide=()=>{if(document.hidden)handleHidden()}
 document.addEventListener('visibilitychange',hide)
 // #endif
-onUnmounted(()=>{clearInterval(recordTimer);clearTimeout(autoRecordTimer);stopPlayback();uni.$off('app-hidden');
+onUnmounted(()=>{handleHidden();clearInterval(recordTimer);clearTimeout(autoRecordTimer);uni.$off('app-hidden',handleHidden);onInterrupted(()=>{});
 // #ifdef H5
 document.removeEventListener('visibilitychange',hide)
 // #endif

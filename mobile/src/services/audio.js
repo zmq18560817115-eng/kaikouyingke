@@ -1,85 +1,126 @@
-let recorder,stream,chunks=[],browserRecorder,context,currentAudio
-let interruptedHandler=()=>{}
-let nativeStarted=false,nativeCompletion,nativeResolve,nativeReject,nativeStartResolve,nativeStartReject
-export function onInterrupted(fn){interruptedHandler=fn}
-export function speechAvailable(){
+let recorder, stream, browserRecorder, context, currentAudio
+let interruptedHandler = () => {}
+let nativeStarted = false, nativeCompletion, nativeResolve, nativeReject, nativeStartResolve, nativeStartReject
+let browserCompletion
+export function onInterrupted(fn) { interruptedHandler = fn }
+export function speechAvailable() {
   // #ifdef H5
-  return typeof speechSynthesis!=='undefined'
+  return typeof speechSynthesis !== 'undefined'
   // #endif
   // #ifndef H5
   return false
   // #endif
 }
-export function stopPlayback(){
+export function stopPlayback() {
   // #ifdef H5
-  if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel()
-  if(currentAudio){currentAudio.pause();URL.revokeObjectURL(currentAudio.src);currentAudio=null}
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
+  if (currentAudio) { const audio = currentAudio; currentAudio = null; audio.pause(); URL.revokeObjectURL(audio.src) }
   // #endif
-  if(context){context.stop();context.destroy();context=null}
+  if (context) { context.stop(); context.destroy(); context = null }
 }
-export function speak(text,slow=false){
+export function speak(text, slow = false) {
   stopPlayback()
   // #ifdef H5
-  if(typeof speechSynthesis!=='undefined'){const msg=new SpeechSynthesisUtterance(text);msg.lang='zh-CN';msg.rate=slow?.65:.88;speechSynthesis.speak(msg);return true}
+  if (typeof speechSynthesis !== 'undefined') { const msg = new SpeechSynthesisUtterance(text); msg.lang = 'zh-CN'; msg.rate = slow ? .65 : .88; speechSynthesis.speak(msg); return true }
   // #endif
   return false
 }
-export async function startRecording(){
+export async function startRecording() {
   stopPlayback()
   // #ifdef H5
-  if(!navigator.mediaDevices?.getUserMedia)throw new Error('当前浏览器无法录音，请使用HTTPS或本机预览。')
-  stream=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[]
-  try{browserRecorder=new MediaRecorder(stream)}catch(e){stream.getTracks().forEach(t=>t.stop());throw e}
-  browserRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)}
-  browserRecorder.start();return
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error('当前浏览器无法录音，请使用HTTPS或本机预览。')
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }) }
+  catch (e) { throw new Error(e.name === 'NotAllowedError' ? '未获得麦克风权限，可在浏览器设置中开启后重试。' : '没有打开麦克风，请检查设备后重试。') }
+  const chunks = []
+  try {
+    browserRecorder = new MediaRecorder(stream)
+    browserCompletion = new Promise((resolve, reject) => {
+      const release = () => { stream?.getTracks().forEach(t => t.stop()); stream = null }
+      browserRecorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data) }
+      browserRecorder.onstop = () => {
+        release()
+        const blob = new Blob(chunks, { type: browserRecorder.mimeType })
+        resolve(blob.size ? { blob, path: URL.createObjectURL(blob), mime: blob.type } : null)
+        interruptedHandler()
+      }
+      browserRecorder.onerror = () => { release(); reject(new Error('录音中断，请重新录制。')); interruptedHandler() }
+    })
+    browserCompletion.catch(() => {})
+    browserRecorder.start()
+  } catch (e) { stream?.getTracks().forEach(t => t.stop()); stream = null; browserRecorder = null; throw e }
+  return
   // #endif
   // #ifndef H5
-  if(!recorder){
-    recorder=uni.getRecorderManager()
-    recorder.onStart(()=>{nativeStarted=true;nativeStartResolve?.()})
-    recorder.onError(e=>{nativeStarted=false;const error=new Error(e.errMsg||'无法打开麦克风');nativeStartReject?.(error);nativeReject?.(error)})
-    recorder.onStop(result=>{nativeStarted=false;uni.saveFile({tempFilePath:result.tempFilePath,success:r=>nativeResolve?.({path:r.savedFilePath,mime:'audio/mp3'}),fail:e=>nativeReject?.(e)})})
-    recorder.onInterruptionBegin(()=>{if(nativeStarted)recorder.stop();interruptedHandler()})
+  if (!recorder) {
+    recorder = uni.getRecorderManager()
+    recorder.onStart(() => { nativeStarted = true; nativeStartResolve?.() })
+    recorder.onError(() => { nativeStarted = false; const error = new Error('无法录音，请检查麦克风权限和设备后重试。'); nativeStartReject?.(error); nativeReject?.(error); interruptedHandler() })
+    recorder.onStop(result => { nativeStarted = false; uni.saveFile({ tempFilePath: result.tempFilePath, success: r => nativeResolve?.({ path: r.savedFilePath, mime: 'audio/mp3' }), fail: () => nativeReject?.(new Error('录音未能保存，请检查本机空间。')) }); interruptedHandler() })
+    recorder.onInterruptionBegin(() => { if (nativeStarted) recorder.stop(); interruptedHandler() })
   }
-  nativeCompletion=new Promise((resolve,reject)=>{nativeResolve=resolve;nativeReject=reject})
-  nativeCompletion.catch(()=>{})
-  await new Promise((resolve,reject)=>{nativeStartResolve=resolve;nativeStartReject=reject;recorder.start({duration:60000,sampleRate:16000,numberOfChannels:1,format:'mp3'})})
+  nativeCompletion = new Promise((resolve, reject) => { nativeResolve = resolve; nativeReject = reject })
+  nativeCompletion.catch(() => {})
+  await new Promise((resolve, reject) => { nativeStartResolve = resolve; nativeStartReject = reject; recorder.start({ duration: 60000, sampleRate: 16000, numberOfChannels: 1, format: 'mp3' }) })
   // #endif
 }
-export async function stopRecording(){
+export async function stopRecording() {
   // #ifdef H5
-  if(!browserRecorder||browserRecorder.state==='inactive')return null
-  return new Promise(resolve=>{browserRecorder.onstop=()=>{const blob=new Blob(chunks,{type:browserRecorder.mimeType});stream?.getTracks().forEach(t=>t.stop());resolve({blob,path:URL.createObjectURL(blob),mime:blob.type})};browserRecorder.stop()})
+  if (!browserRecorder) return null
+  if (browserRecorder.state !== 'inactive') browserRecorder.stop()
+  return browserCompletion
   // #endif
   // #ifndef H5
-  if(nativeStarted)recorder.stop()
+  if (nativeStarted) recorder.stop()
   return nativeCompletion
   // #endif
 }
-async function mediaDB(){
-  return new Promise((resolve,reject)=>{const r=indexedDB.open('kaikou-media',1);r.onupgradeneeded=()=>r.result.createObjectStore('recordings');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+async function mediaDB() {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open('kaikou-media', 1)
+    r.onupgradeneeded = () => r.result.createObjectStore('recordings')
+    r.onsuccess = () => resolve(r.result)
+    r.onerror = () => reject(r.error)
+  })
 }
-export async function storeAudio(id,audio){
+async function writeAudio(id, blob, remove = false) {
+  const db = await mediaDB()
+  try { await new Promise((resolve, reject) => {
+    const tx = db.transaction('recordings', 'readwrite'), store = tx.objectStore('recordings')
+    if (remove) store.delete(id); else store.put(blob, id)
+    tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('本机存储操作中断'))
+  }) } finally { db.close() }
+}
+export async function storeAudio(id, audio) {
   // #ifdef H5
-  const db=await mediaDB();await new Promise((resolve,reject)=>{const tx=db.transaction('recordings','readwrite');tx.objectStore('recordings').put(audio.blob,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();URL.revokeObjectURL(audio.path)
+  try { await writeAudio(id, audio.blob) } finally { URL.revokeObjectURL(audio.path) }
   // #endif
   return audio.path
 }
-export async function playRecording(record){
+export async function playRecording(record) {
   stopPlayback()
   // #ifdef H5
-  const db=await mediaDB();const blob=await new Promise((resolve,reject)=>{const r=db.transaction('recordings').objectStore('recordings').get(record.id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});db.close();if(!blob)throw new Error('这条录音已不在本机，请重新录制。');currentAudio=new Audio(URL.createObjectURL(blob));await currentAudio.play();return
+  const db = await mediaDB()
+  let blob
+  try { blob = await new Promise((resolve, reject) => { const r = db.transaction('recordings').objectStore('recordings').get(record.id); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error) }) } finally { db.close() }
+  if (!blob) throw new Error('这条录音已不在本机，请重新录制。')
+  const audio = new Audio(URL.createObjectURL(blob)); currentAudio = audio
+  const release = () => { URL.revokeObjectURL(audio.src); if (currentAudio === audio) currentAudio = null }
+  audio.onended = release; audio.onerror = release
+  try { await audio.play() } catch { release(); throw new Error('这条录音暂时无法播放，请重试。') }
+  return
   // #endif
   // #ifndef H5
-  context=uni.createInnerAudioContext();context.src=record.path;context.play()
+  context = uni.createInnerAudioContext(); context.src = record.path
+  const audioContext = context
+  await new Promise((resolve, reject) => { audioContext.onPlay(resolve); audioContext.onError(() => { if (context === audioContext) stopPlayback(); reject(new Error('这条录音暂时无法播放，请重试。')) }); audioContext.onEnded(() => { if (context === audioContext) stopPlayback() }); audioContext.play() })
   // #endif
 }
-export async function deleteAudio(record){
+export async function deleteAudio(record) {
   stopPlayback()
   // #ifdef H5
-  const db=await mediaDB();await new Promise((resolve,reject)=>{const tx=db.transaction('recordings','readwrite');tx.objectStore('recordings').delete(record.id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()
+  await writeAudio(record.id, null, true)
   // #endif
   // #ifndef H5
-  await new Promise((resolve,reject)=>uni.removeSavedFile({filePath:record.path,success:resolve,fail:reject}))
+  await new Promise((resolve, reject) => uni.removeSavedFile({ filePath: record.path, success: resolve, fail: reject }))
   // #endif
 }

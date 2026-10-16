@@ -4,6 +4,7 @@
 
 - [运行手机端工程](mobile/README.md)：uni-app + Vue 3，H5 与微信小程序。
 - [独立设计规范 Word](交付/开口迎客_独立设计规范_V1.0.docx)及[可编辑 Markdown](交付/开口迎客_独立设计规范_V1.0.md)。
+- [Railway 部署配置与排错](DEPLOYMENT.md)。
 - [视觉与使用流程验收](mobile/design-qa.md)。
 - [插画原始素材与提示词](assets/README.md)。
 

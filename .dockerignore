@@ -1,0 +1,12 @@
+**
+!mobile
+!mobile/**
+mobile/node_modules
+mobile/dist
+mobile/qa
+mobile/tests
+mobile/.env
+mobile/.env.*
+!mobile/.env.example
+!Dockerfile
+!railway.toml
