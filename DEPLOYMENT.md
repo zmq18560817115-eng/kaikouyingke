@@ -12,13 +12,13 @@
 
 仓库根目录提供 `Dockerfile`、`.dockerignore` 和 `railway.toml`，解决应用代码位于 `mobile` 子目录、根目录没有启动命令的问题。
 
-1. 服务 Source 连接上述仓库与 `main`；Root Directory 使用仓库根目录 `/`。
-2. 配置文件使用根目录 `/railway.toml`（默认会自动发现）。采用 Dockerfile 构建，无需另填 Build Command。
+1. 服务 Source 连接上述仓库与 `main`；Root Directory 可使用仓库根目录 `/`（推荐），也兼容已有 `/mobile` 设置。
+2. 根目录部署使用 `/railway.toml`；若 Root Directory 为 `/mobile`，配置文件路径使用 `/mobile/railway.toml`。采用 Dockerfile 构建，无需另填 Build Command。
 3. 镜像在 Node.js 22 中执行 `mobile/npm ci`、`npm run build:h5`，运行层只复制网页产物与服务脚本。
 4. 启动 `node scripts/serve-h5.mjs`，监听 `0.0.0.0:$PORT`；`PORT` 由 Railway 注入，无需固定 5174。
 5. 健康检查 `/healthz`，成功返回 HTTP 200 与版本号。公开访问在 Networking 中生成 Railway 域名，使用 HTTPS。
 
-不要把开发命令 `npm run dev` 设为生产启动命令。若旧服务设置过 `/mobile` 根目录，应改回 `/` 后部署最新提交；仓库级 Dockerfile 的 COPY 路径从根目录计算。
+不要把开发命令 `npm run dev` 设为生产启动命令。仓库根目录和 `mobile` 内各提供匹配的 Dockerfile；两种 Root Directory 都可构建同一个运行服务。不要交叉使用根目录 Dockerfile 与子目录构建上下文。
 
 ## 本机生产验证
 
@@ -39,3 +39,9 @@ PORT=3000 npm start
 若失败，先看 Build Logs 判断依赖安装/编译问题，再看 Deploy Logs 判断启动路径、PORT 和健康检查问题。不要清除用户浏览器数据来解决服务器部署故障。
 
 配置依据：[Railway 配置文件](https://docs.railway.com/config-as-code/reference)、[子目录项目](https://docs.railway.com/deployments/monorepo)、[健康检查](https://docs.railway.com/deployments/healthchecks)。
+
+## 本次部署状态（2026-10-16）
+
+`5277e9a` 已成功推送至 main，本机测试和 H5/微信编译通过，但 Railway 自动部署仍在开始后返回失败。GitHub 状态没有包含具体构建错误。随后补充 `mobile` 内的 Dockerfile 与配置，兼容服务已使用 `/mobile` 的情况。
+
+尚未确认根目录兼容补充后的线上结果。管理网页在当前浏览器无法加载，且本机没有 Railway 登录凭据；已请求连接 Railway 插件读取构建日志。不能将当前状态表述为已上线。
