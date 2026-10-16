@@ -55,7 +55,7 @@ export async function startRecording() {
     recorder = uni.getRecorderManager()
     recorder.onStart(() => { nativeStarted = true; nativeStartResolve?.() })
     recorder.onError(() => { nativeStarted = false; const error = new Error('无法录音，请检查麦克风权限和设备后重试。'); nativeStartReject?.(error); nativeReject?.(error); interruptedHandler() })
-    recorder.onStop(result => { nativeStarted = false; uni.saveFile({ tempFilePath: result.tempFilePath, success: r => nativeResolve?.({ path: r.savedFilePath, mime: 'audio/mp3' }), fail: () => nativeReject?.(new Error('录音未能保存，请检查本机空间。')) }); interruptedHandler() })
+    recorder.onStop(result => { nativeStarted = false; uni.saveFile({ tempFilePath: result.tempFilePath, success: r => nativeResolve?.({ path: r.savedFilePath, mime: 'audio/mp3', duration: result.duration / 1000 }), fail: () => nativeReject?.(new Error('录音未能保存，请检查本机空间。')) }); interruptedHandler() })
     recorder.onInterruptionBegin(() => { if (nativeStarted) recorder.stop(); interruptedHandler() })
   }
   nativeCompletion = new Promise((resolve, reject) => { nativeResolve = resolve; nativeReject = reject })
@@ -95,6 +95,12 @@ export async function storeAudio(id, audio) {
   try { await writeAudio(id, audio.blob) } finally { URL.revokeObjectURL(audio.path) }
   // #endif
   return audio.path
+}
+export async function getRecordingBlob(id) {
+  // #ifdef H5
+  const db=await mediaDB()
+  try{return await new Promise((resolve,reject)=>{const r=db.transaction('recordings').objectStore('recordings').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}finally{db.close()}
+  // #endif
 }
 export async function playRecording(record) {
   stopPlayback()

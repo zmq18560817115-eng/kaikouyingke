@@ -10,5 +10,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/dist/build/h5 ./dist/build/h5
 COPY --from=build /app/scripts/serve-h5.mjs ./scripts/serve-h5.mjs
+COPY --from=build /app/server ./server
+COPY --from=build /app/shared ./shared
 USER node
 CMD ["node", "scripts/serve-h5.mjs"]

@@ -1,19 +1,21 @@
 import http from 'node:http'
+import { createAssessmentApi } from '../server/assessment-api.mjs'
 import { createReadStream, existsSync } from 'node:fs'
 import { stat, realpath } from 'node:fs/promises'
 import { resolve, extname, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 const MIME = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon','.woff2':'font/woff2','.mp3':'audio/mpeg','.wasm':'application/wasm' }
-export function createStaticServer(directory = fileURLToPath(new URL('../dist/build/h5/', import.meta.url))) {
-  const root = resolve(directory)
+export function createStaticServer(directory = fileURLToPath(new URL('../dist/build/h5/', import.meta.url)), options = {}) {
+  const root = resolve(directory), assessmentApi = createAssessmentApi(options)
   return http.createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff')
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
     const reply = (code, body) => { res.writeHead(code, { 'Content-Type':'text/plain; charset=utf-8', 'Cache-Control':'no-store' }); res.end(req.method === 'HEAD' ? undefined : body) }
-    if (!['GET','HEAD'].includes(req.method)) { res.setHeader('Allow','GET, HEAD'); return reply(405,'Method not allowed') }
     let pathname
     try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname) } catch { return reply(400, 'Bad request') }
-    if (pathname === '/healthz') { res.writeHead(200, { 'Content-Type':'application/json', 'Cache-Control':'no-store' }); return res.end(req.method === 'HEAD' ? undefined : '{"status":"ok","version":"0.1.1"}') }
+    if (await assessmentApi(req, res, pathname)) return
+    if (!['GET','HEAD'].includes(req.method)) { res.setHeader('Allow','GET, HEAD'); return reply(405,'Method not allowed') }
+    if (pathname === '/healthz') { res.writeHead(200, { 'Content-Type':'application/json', 'Cache-Control':'no-store' }); return res.end(req.method === 'HEAD' ? undefined : '{"status":"ok","version":"0.2.0"}') }
     if (pathname.includes('\\') || pathname.includes('\0') || pathname.split('/').some(s => s.startsWith('.'))) return reply(404,'Not found')
     let path = resolve(root, '.' + pathname)
     if (path !== root && !path.startsWith(root + sep)) return reply(404,'Not found')

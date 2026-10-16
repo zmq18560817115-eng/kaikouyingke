@@ -10,3 +10,4 @@ mobile/.env.*
 !mobile/.env.example
 !Dockerfile
 !railway.toml
+mobile/.work

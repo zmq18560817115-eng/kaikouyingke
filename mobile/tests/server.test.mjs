@@ -12,7 +12,7 @@ test('生产服务正确提供页面资源与健康检查，拒绝目录穿越�
  const raw=path=>new Promise((resolve,reject)=>{http.get(base+path,r=>{r.resume();r.on('end',()=>resolve(r.statusCode))}).on('error',reject)})
  try{
   let r=await fetch(base+'/');assert.equal(r.status,200);assert.match(await r.text(),/开口迎客/);assert.match(r.headers.get('content-type'),/text\/html/)
-  r=await fetch(base+'/healthz');assert.equal(r.status,200);assert.equal((await r.json()).version,'0.1.1')
+  r=await fetch(base+'/healthz');assert.equal(r.status,200);assert.equal((await r.json()).version,'0.2.0')
   r=await fetch(base+'/assets/app-abcdefgh.js',{method:'HEAD'});assert.equal(r.status,200);assert.equal(await r.text(),'');assert.match(r.headers.get('cache-control'),/immutable/)
   for(const path of ['/missing.js','/.env','/link.txt','/%2e%2e%2fsecret.txt','/%00'])assert.equal(await raw(path),404,path)
   assert.equal(await raw('/%ZZ'),400);assert.equal((await fetch(base+'/',{method:'POST'})).status,405)

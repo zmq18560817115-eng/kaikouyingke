@@ -60,7 +60,7 @@
       <view class="stats-grid"><view class="green"><AppIcon name="chats-circle"/><text>练习</text><text class="stat-number">{{state.attempts.length}}<text> 次</text></text></view><view class="blue"><AppIcon name="calendar" tone="blue"/><text>学习</text><text class="stat-number">{{state.learningDates.length}}<text> 天</text></text></view><view class="amber"><AppIcon name="book-open" tone="amber"/><text>完成</text><text class="stat-number">{{state.completed.length}}<text> 课</text></text></view></view>
       <SectionTitle title="内容与设置"/>
       <button role="button" v-for="m in managementLinks" :key="m.page" class="list-card" @click="go(m.page)"><view class="icon-square" :class="m.color"><AppIcon :name="m.icon" :tone="m.color" :size="28"/></view><view class="list-copy"><text class="list-title">{{m.title}}</text><text class="small muted">{{m.desc}}</text></view><AppIcon name="caret-right" tone="muted" :size="19"/></button>
-      <view class="quiet-note"><AppIcon name="lock-key" :size="19"/>你的内容默认保存在本机，暂未上传</view>
+      <view class="quiet-note"><AppIcon name="lock-key" :size="19"/>学习记录默认在本机，发音评测需单独同意上传</view>
     </view>
     <view class="tab-bar"><button role="button" v-for="t in tabs" :key="t.id" :class="{active:tab===t.id}" @click="switchTab(t.id)"><AppIcon :name="t.icon" :tone="tab===t.id?'green':'muted'" :size="27"/><text>{{t.title}}</text><view v-if="tab===t.id" class="tab-indicator"/></button></view>
   </view>
@@ -87,7 +87,7 @@
           <view v-if="stageDefinition.id==='retell'" class="hint-control"><text class="small muted">提示</text><button role="button" v-for="(h,i) in ['仅看图','关键词','完整示范']" :key="h" :class="{chosen:hintLevel===i}" @click="hintLevel=i">{{h}}</button></view>
           <view class="recorder"><button role="button" class="record-button" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'点击开始说'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'录音已保存在本机':'说完后，再点一次结束'}}</text></view>
           <button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)"><AppIcon name="play"/>听我的录音</button>
-          <view v-if="lastRecording" class="feedback-message blue"><text>录音已保存，可以对照示范回听。</text><text class="small">语音分析尚未连接，本次不生成AI分数或掌握结论。</text></view>
+          <view v-if="lastRecording" class="feedback-message blue"><text>录音已保存，可以对照示范回听。</text><text class="small">本关保留回听与手动练习记录。发音评分入口在模拟接待中。</text></view>
           <button role="button" class="primary" :disabled="recording||recordStarting||recordSaving" @click="finishSpoken">{{lastRecording?'保存并继续':'我已开口练习，继续'}}</button><text class="service-note">手动完成仅记为练习记录，独立接待能力需要进一步验证。</text>
         </template>
       </template>
@@ -97,11 +97,11 @@
       </template>
 
       <template v-else-if="page==='dialogue'">
-        <view class="dialogue-meta"><view class="avatar-small"><image :src="img(selectedRole.image)" mode="aspectFill"/></view><view><text class="strong">{{selectedRole.title}}</text><text class="small muted">{{selectedScenario.title}} · {{difficulties[difficulty]}}</text></view><text class="badge blue">{{dialogueIndex+1}} / {{dialogueQuestions.length}}</text></view><view class="card visitor-question"><text class="eyebrow">游客问</text><text class="spoken-sentence">{{dialogueQuestions[dialogueIndex]}}</text><view class="audio-actions"><button role="button" @click="playText(dialogueQuestions[dialogueIndex])"><AppIcon name="speaker-high"/>再听一次</button><button role="button" @click="playText(dialogueQuestions[dialogueIndex],true)"><AppIcon name="gauge"/>慢一点</button></view></view><view v-if="difficulty<2||showHelp" class="card green"><text class="eyebrow">{{difficulty===0?'回答提示':'关键词提示'}}</text><text class="body-copy">{{difficulty===0?'按你确认的真实情况，回应游客想了解的信息。':selectedScenario.facts.join('　')}}</text></view><view class="recorder"><button role="button" class="record-button" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'开始回答'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'本次回答已保存':'可以录音，也可以先自己说一遍'}}</text></view><button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)">回听这次回答</button><button role="button" class="primary" :disabled="recording||recordStarting||recordSaving" @click="nextDialogue">{{dialogueIndex===dialogueQuestions.length-1?'完成这轮接待':'我已回答，继续'}}</button><button role="button" class="text-button" @click="showHelp=!showHelp">{{showHelp?'收起提示':'我需要一点提示'}}</button><text class="service-note">课程固定问答，不会把手动完成视为AI已听懂。</text>
+        <view class="dialogue-meta"><view class="avatar-small"><image :src="img(selectedRole.image)" mode="aspectFill"/></view><view><text class="strong">{{selectedRole.title}}</text><text class="small muted">{{selectedScenario.title}} · {{difficulties[difficulty]}}</text></view><text class="badge blue">{{dialogueIndex+1}} / {{dialogueQuestions.length}}</text></view><view class="card visitor-question"><text class="eyebrow">游客问</text><text class="spoken-sentence">{{dialogueQuestions[dialogueIndex]}}</text><view class="audio-actions"><button role="button" @click="playText(dialogueQuestions[dialogueIndex])"><AppIcon name="speaker-high"/>再听一次</button><button role="button" @click="playText(dialogueQuestions[dialogueIndex],true)"><AppIcon name="gauge"/>慢一点</button></view></view><view v-if="difficulty<2||showHelp" class="card green"><text class="eyebrow">{{difficulty===0?'回答提示':'关键词提示'}}</text><text class="body-copy">{{difficulty===0?'按你确认的真实情况，回应游客想了解的信息。':selectedScenario.facts.join('　')}}</text></view><view class="recorder"><button role="button" class="record-button" :disabled="recordStarting||recordSaving" :class="{recording}" @click="toggleRecord"><AppIcon :name="recording?'stop':'microphone'" tone="white" :size="34"/><text>{{recording?'点击结束':recordStarting?'正在打开':recordSaving?'正在保存':'开始回答'}}</text></button><text class="record-time">{{recording?formatTime(recordSeconds):lastRecording?'本次回答已保存':'可以录音，也可以先自己说一遍'}}</text></view><button role="button" v-if="lastRecording" class="secondary" @click="playSaved(lastRecording)">回听这次回答</button><PronunciationAssessment :recording="lastRecording" :question="dialogueQuestions[dialogueIndex]"/><button role="button" class="primary" :disabled="recording||recordStarting||recordSaving" @click="nextDialogue">{{dialogueIndex===dialogueQuestions.length-1?'完成这轮接待':'我已回答，继续'}}</button><button role="button" class="text-button" @click="showHelp=!showHelp">{{showHelp?'收起提示':'我需要一点提示'}}</button><text class="service-note">课程固定问答，不会把手动完成视为AI已听懂。</text>
       </template>
 
       <template v-else-if="page==='recap'">
-        <view class="completion-head"><view class="completion-icon green"><AppIcon name="chats-circle" :size="42"/></view><text class="detail-title">完成了一轮接待练习</text><text class="muted">共练习 {{dialogueQuestions.length}} 个问题</text></view><view class="card"><text class="card-title">游客提到的问题</text><view v-for="(q,i) in dialogueQuestions" :key="q" class="recap-item"><text>{{i+1}}. {{q}}</text><text class="small muted">{{dialogueAnswers[i]?'回答录音已保存，可回听':'已手动记录练习'}}</text><button role="button" v-if="dialogueAnswers[i]" class="mini-button" @click="playSaved(dialogueAnswers[i])">回听</button><button role="button" class="mini-button" @click="addDialogueReview(q)">加入复习</button></view><text class="small muted">录音和手动记录用于复盘，当前没有AI评价结论。</text></view><button role="button" class="primary" @click="go('task')">试试真实经营任务</button><button role="button" class="secondary" @click="switchTab('tourist')">再练一轮</button>
+        <view class="completion-head"><view class="completion-icon green"><AppIcon name="chats-circle" :size="42"/></view><text class="detail-title">完成了一轮接待练习</text><text class="muted">共练习 {{dialogueQuestions.length}} 个问题</text><text v-if="dialogueAssessment" class="assessment-average">发音平均分 {{dialogueAssessment.score}} / 100</text><text v-if="dialogueAssessment" class="small muted">已评分 {{dialogueAssessment.count}} / {{dialogueQuestions.length}} 个回答的准确度平均值</text></view><view class="card"><text class="card-title">游客提到的问题</text><view v-for="(q,i) in dialogueQuestions" :key="q" class="recap-item"><text>{{i+1}}. {{q}}</text><text class="small muted">{{dialogueAnswers[i]?'回答录音已保存，可回听':'已手动记录练习'}}</text><button role="button" v-if="dialogueAnswers[i]" class="mini-button" @click="playSaved(dialogueAnswers[i])">回听</button><button role="button" class="mini-button" @click="addDialogueReview(q)">加入复习</button><PronunciationAssessment v-if="recordingById(dialogueAnswers[i])" :recording="recordingById(dialogueAnswers[i])" :question="q"/></view><text class="small muted">已录音的回答可逐条评分；手动完成的回答不生成分数。</text></view><button role="button" class="primary" @click="go('task')">试试真实经营任务</button><button role="button" class="secondary" @click="switchTab('tourist')">再练一轮</button>
       </template>
 
       <template v-else-if="page==='say'">
@@ -149,11 +149,11 @@
       </template>
 
       <template v-else-if="page==='privacy'">
-        <view class="card"><text class="card-title">你来决定声音怎么用</text><text class="body-copy">只在点击开始后录音。当前录音保存在本机，未上传到云端。</text><text class="small muted">删除后无法在本机找回，对应练习记录保留。</text></view><SectionTitle :title="'我的录音 · '+state.recordings.length+'条'"/><view v-if="!state.recordings.length" class="empty-state"><AppIcon name="microphone" :size="48"/><text class="muted">还没有保存的录音</text></view><view v-for="r in state.recordings" :key="r.id" class="card recording-row"><text class="strong">{{r.title}}</text><text class="small muted">{{r.date}} · {{r.duration}}秒 · 仅本机</text><view class="two-column"><button role="button" class="secondary" @click="playSaved(r)"><AppIcon name="play"/>回听</button><button role="button" class="secondary danger-text" @click="confirmDeleteRecording(r)"><AppIcon name="trash" tone="muted"/>删除</button></view></view>
+        <view class="card"><text class="card-title">你来决定声音怎么用</text><text class="body-copy">只在点击开始后录音。原录音保存在本机；仅在你点击发音打分并同意后，才发送至腾讯云评测。本站不保存云端录音文件。</text><text class="small muted">删除后无法在本机找回，对应练习记录保留。</text></view><SectionTitle :title="'我的录音 · '+state.recordings.length+'条'"/><view v-if="!state.recordings.length" class="empty-state"><AppIcon name="microphone" :size="48"/><text class="muted">还没有保存的录音</text></view><view v-for="r in state.recordings" :key="r.id" class="card recording-row"><text class="strong">{{r.title}}</text><text class="small muted">{{r.date}} · {{r.duration}}秒 · 原音在本机</text><PronunciationAssessment v-if="r.assessment" :recording="r" :read-only="true"/><view class="two-column"><button role="button" class="secondary" @click="playSaved(r)"><AppIcon name="play"/>回听</button><button role="button" class="secondary danger-text" @click="confirmDeleteRecording(r)"><AppIcon name="trash" tone="muted"/>删除</button></view></view>
       </template>
 
       <template v-else-if="page==='settings'">
-        <view class="card"><view class="setting-row"><view><text class="list-title">大字号</text><text class="small muted">让正文和操作更容易看清</text></view><button role="switch" aria-label="大字号" :aria-checked="state.settings.largeText" class="mini-button setting-toggle" :class="state.settings.largeText?'green':'neutral'" @click="changeSetting('largeText')">{{state.settings.largeText?'已开启':'开启'}}</button></view><view class="setting-row"><view><text class="list-title">示范声音</text><text class="small muted">由你主动点击播放</text></view><button role="switch" aria-label="示范声音" :aria-checked="state.settings.voice" class="mini-button setting-toggle" :class="state.settings.voice?'green':'neutral'" @click="changeSetting('voice')">{{state.settings.voice?'已开启':'开启'}}</button></view></view><view class="card"><text class="card-title">关于开口迎客</text><text class="body-copy">围绕真实旅游接待练习普通话，关注游客能否听懂，不以消除口音为目标。</text><text class="small muted">课程基于项目需求文档V2.0，首期内容版本1.0。</text></view><view class="card"><text class="card-title">当前服务范围</text><text class="body-copy">课程、固定问答、个人表达整理和本机记录可用。真实AI评价、地区母语示范、账号云同步与人工审核尚未连接。</text></view>
+        <view class="card"><view class="setting-row"><view><text class="list-title">大字号</text><text class="small muted">让正文和操作更容易看清</text></view><button role="switch" aria-label="大字号" :aria-checked="state.settings.largeText" class="mini-button setting-toggle" :class="state.settings.largeText?'green':'neutral'" @click="changeSetting('largeText')">{{state.settings.largeText?'已开启':'开启'}}</button></view><view class="setting-row"><view><text class="list-title">示范声音</text><text class="small muted">由你主动点击播放</text></view><button role="switch" aria-label="示范声音" :aria-checked="state.settings.voice" class="mini-button setting-toggle" :class="state.settings.voice?'green':'neutral'" @click="changeSetting('voice')">{{state.settings.voice?'已开启':'开启'}}</button></view></view><view class="card"><text class="card-title">关于开口迎客</text><text class="body-copy">围绕真实旅游接待练习普通话，关注游客能否听懂，不以消除口音为目标。</text><text class="small muted">课程基于项目需求文档V2.0，首期内容版本1.0。</text></view><view class="card"><text class="card-title">当前服务范围</text><text class="body-copy">课程、固定问答、个人表达整理和本机记录可用。模拟接待的发音打分需开通语音评测服务；自由追问、地区母语示范、账号云同步与人工审核尚未连接。</text></view>
       </template>
     </view>
   </view>
@@ -167,6 +167,8 @@ import {ref,computed,onUnmounted} from 'vue'
 import AppIcon from '../../components/AppIcon.vue'
 import PageHeader from '../../components/PageHeader.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
+import PronunciationAssessment from '../../components/PronunciationAssessment.vue'
+import {averageAssessment} from '../../../shared/assessment.mjs'
 import {state,updateState,markComplete,queueReview,savePersonal,removeRecording,uid,localDay} from '../../store'
 import {scenarios,stages,publicScenes,occupations,tourists,reviewTypes,reflections,getScenario,getLesson,getDialogueQuestions} from '../../data/library'
 import domain from '../../domain.mjs'
@@ -194,6 +196,7 @@ const selectedRole=computed(()=>tourists.find(t=>t.id===selectedTourist.value)||
 const activeLesson=computed(()=>getLesson(lessonId.value))
 const stageDefinition=computed(()=>stages.find(s=>s.id===activeLesson.value.stages[practiceStep.value])||stages[0])
 const lastRecording=computed(()=>state.recordings.find(r=>r.id===lastRecordingId.value))
+const dialogueAssessment=computed(()=>averageAssessment(dialogueAnswers.value.map(id=>recordingById(id))))
 const activePersonal=computed(()=>state.personal.find(p=>p.id===activePersonalId.value))
 const nextLesson=computed(()=>{const list=selectedScenario.value.lessons;return list[list.findIndex(l=>l.id===lessonId.value)+1]})
 const reviewQueue=computed(()=>state.reviews.filter(r=>!r.done).slice(0,5))
@@ -209,6 +212,7 @@ const titles={'scenario':'情境课程','practice':'情境练习','lesson-result
 const pageTitle=computed(()=>titles[page.value]||'开口迎客')
 const pageSubtitle=computed(()=>page.value==='practice'?activeLesson.value.title:'')
 function toast(title){uni.showToast({title,icon:'none',duration:2600})}
+function recordingById(id){return state.recordings.find(r=>r.id===id)||null}
 function completedIn(s){return s.lessons.filter(l=>state.completed.includes(l.id)).length}
 function stageById(id){return stages.find(s=>s.id===id)||stages[0]}
 function scrollTop(){uni.pageScrollTo({scrollTop:0,duration:0})}
@@ -306,7 +310,7 @@ async function endRecord(){
     try{
       const audio=await stopRecording();if(!audio){toast('没有录到声音，请重新录制。');return false}
       const id=uid('audio');await storeAudio(id,audio)
-      const r={id,path:audio.path,title,duration,date:localDay()}
+      const r={id,path:audio.path,mime:audio.mime,title,duration:Math.round((audio.duration||duration)*10)/10,date:localDay()}
       if(updateState(s=>s.recordings.unshift(r))){lastRecordingId.value=id;return true}
       await deleteAudio(r);return false
     }catch{toast('录音未能保存，请检查本机空间后重试。');return false}
@@ -370,7 +374,7 @@ function saveReflection(){
 }
 function saveProfile(){if(updateState(s=>{s.profile={...editProfile.value,name:editProfile.value.name.trim()||'朋友'}})){toast('资料已保存');switchTab('me')}}
 function changeSetting(key){if(updateState(s=>{s.settings[key]=!s.settings[key]})&&key==='voice'&&!state.settings.voice)stopPlayback()}
-function confirmDeleteRecording(r){uni.showModal({title:'删除本机录音？',content:'录音删除后无法找回，学习进度会保留。这条录音未上传。',confirmColor:'#237a59',success:async result=>{if(result.confirm){try{await deleteAudio(r);if(removeRecording(r.id))toast('本机录音已删除')}catch{toast('没有删除成功，请稍后再试。')}}}})}
+function confirmDeleteRecording(r){uni.showModal({title:'删除本机录音？',content:'此操作删除本机录音和本机评分结果，学习进度保留。删除后无法在本机找回。',confirmColor:'#237a59',success:async result=>{if(result.confirm){try{await deleteAudio(r);if(removeRecording(r.id))toast('本机录音已删除')}catch{toast('没有删除成功，请稍后再试。')}}}})}
 function formatTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function handleHidden(){if(recordStarting.value)cancelPendingRecord=true;if(recording.value)endRecord();stopPlayback()}
 onInterrupted(handleHidden)

@@ -50,3 +50,9 @@ PORT=3000 npm start
 - 使用 Railway 插件读取构建与运行日志并生成正式域名。用户学习记录、录音不会上传到该网页服务。
 
 当前文档记录的是已验证的这次发布；后续提交的状态应以对应 Railway 部署为准。
+
+## 0.2.0 发音评测接入
+
+镜像现在同时包含 `server` 与 `shared` 模块，仍使用同一启动命令和动态端口。客户端新增讲述发音评分、识别文本、字词建议与复盘报告；真实供应商接入需要另外开通腾讯云服务。
+
+没有凭据时保持 `SPEECH_ASSESSMENT_ENABLED=false`；`GET /api/speech/capabilities` 返回 `enabled:false`，评分上传接口返回明确的 503，不产生模拟分数。开通步骤、服务端变量、限额与验证边界见 [语音评测接入说明](mobile/integration/README.md)。健康检查的应用版本更新为 0.2.0。

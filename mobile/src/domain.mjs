@@ -1,3 +1,4 @@
+import { validAssessment } from '../shared/assessment.mjs'
 const fresh = () => ({
   version: 1,
   profile: { name: '朋友', occupation: 'product', region: '尚未选择', language: '普通话慢速' },
@@ -37,7 +38,7 @@ function restoreState(cached, catalog) {
   }
   if (scenarios.has(cached.currentScenario)) result.currentScenario = cached.currentScenario
   result.completed = unique((Array.isArray(cached.completed) ? cached.completed : []).filter(id => lessons.has(id)))
-  result.recordings = records(cached.recordings).filter(r => typeof r.path === 'string' && Number.isFinite(r.duration) && r.duration > 0)
+  result.recordings = records(cached.recordings).filter(r => typeof r.path === 'string' && Number.isFinite(r.duration) && r.duration > 0).map(r => ({ ...r, assessment: validAssessment(r.assessment) }))
   const recordingIds = new Set(result.recordings.map(r => r.id))
   const clearMissingAudio = r => ({ ...r, recordingId: recordingIds.has(r.recordingId) ? r.recordingId : null })
   result.attempts = records(cached.attempts).filter(r => typeof r.type === 'string').map(clearMissingAudio)

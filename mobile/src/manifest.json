@@ -1,5 +1,5 @@
 {
-  "name": "开口迎客", "appid": "", "description": "情境普通话训练", "versionName": "0.1.1", "versionCode": "101",
+  "name": "开口迎客", "appid": "", "description": "情境普通话训练", "versionName": "0.2.0", "versionCode": "200",
   "transformPx": false,
   "app-plus": { "usingComponents": true, "distribute": { "android": { "permissions": ["<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>"] } } },
   "h5": { "title": "开口迎客", "router": { "mode": "hash" } },
