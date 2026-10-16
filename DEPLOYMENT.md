@@ -40,8 +40,13 @@ PORT=3000 npm start
 
 配置依据：[Railway 配置文件](https://docs.railway.com/config-as-code/reference)、[子目录项目](https://docs.railway.com/deployments/monorepo)、[健康检查](https://docs.railway.com/deployments/healthchecks)。
 
-## 本次部署状态（2026-10-16）
+## 已发布版本（2026-10-16）
 
-`5277e9a` 已成功推送至 main，本机测试和 H5/微信编译通过，但 Railway 自动部署仍在开始后返回失败。GitHub 状态没有包含具体构建错误。随后补充 `mobile` 内的 Dockerfile 与配置，兼容服务已使用 `/mobile` 的情况。
+- 正式访问：<https://kaikouyingke-production.up.railway.app/>。
+- 应用版本：0.1.1；代码提交 `af70d69274b84f99276c6d5f835e333f007acfbb`。
+- Railway 部署 `bbcd394a-f9e5-4736-a88b-f942a1e5cc8a` 状态 `SUCCESS`，容器监听 8080。
+- 实际服务 Root Directory 为 `mobile`。失败日志确认：先前根目录 Dockerfile 的 `mobile/...` COPY 路径与子目录上下文不匹配；新增 `mobile/Dockerfile` 后构建成功。
+- 正式首页与本机生产 HTML 一致；健康检查返回 `{"status":"ok","version":"0.1.1"}`，JS、CSS 和风景/商品图片均 HTTP 200；浏览器已实际打开首页。
+- 使用 Railway 插件读取构建与运行日志并生成正式域名。用户学习记录、录音不会上传到该网页服务。
 
-尚未确认根目录兼容补充后的线上结果。管理网页在当前浏览器无法加载，且本机没有 Railway 登录凭据；已请求连接 Railway 插件读取构建日志。不能将当前状态表述为已上线。
+当前文档记录的是已验证的这次发布；后续提交的状态应以对应 Railway 部署为准。
