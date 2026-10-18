@@ -1,0 +1,18 @@
+{
+  "欢迎光临！": "welcome",
+  "您想看哪一种？": "choose",
+  "这件产品是手工制作的。": "handmade",
+  "我给您介绍一下。": "introduce",
+  "欢迎": "word-welcome",
+  "光临": "word-guanglin",
+  "您想": "word-ninxiang",
+  "哪一种": "word-which",
+  "产品": "word-product",
+  "手工": "word-handmade",
+  "制作": "word-make",
+  "介绍": "word-introduce",
+  "一下": "word-yixia",
+  "欢迎您！请问一共几位？": "lesson-welcome",
+  "我们按份卖。请让我为您确认价格。": "lesson-price",
+  "这是我们自家做的商品。我给您介绍一下。": "lesson-product"
+}

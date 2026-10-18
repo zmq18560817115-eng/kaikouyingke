@@ -102,7 +102,7 @@ export async function getRecordingBlob(id) {
   try{return await new Promise((resolve,reject)=>{const r=db.transaction('recordings').objectStore('recordings').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}finally{db.close()}
   // #endif
 }
-export async function playRecording(record) {
+export async function playRecording(record, startAt = 0) {
   stopPlayback()
   // #ifdef H5
   const db = await mediaDB()
@@ -110,6 +110,7 @@ export async function playRecording(record) {
   try { blob = await new Promise((resolve, reject) => { const r = db.transaction('recordings').objectStore('recordings').get(record.id); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error) }) } finally { db.close() }
   if (!blob) throw new Error('这条录音已不在本机，请重新录制。')
   const audio = new Audio(URL.createObjectURL(blob)); currentAudio = audio
+  audio.onloadedmetadata = () => { if (startAt > 0 && startAt < audio.duration) audio.currentTime = startAt }
   const release = () => { URL.revokeObjectURL(audio.src); if (currentAudio === audio) currentAudio = null }
   audio.onended = release; audio.onerror = release
   try { await audio.play() } catch { release(); throw new Error('这条录音暂时无法播放，请重试。') }
@@ -118,7 +119,23 @@ export async function playRecording(record) {
   // #ifndef H5
   context = uni.createInnerAudioContext(); context.src = record.path
   const audioContext = context
+  if (startAt > 0) audioContext.startTime = startAt
   await new Promise((resolve, reject) => { audioContext.onPlay(resolve); audioContext.onError(() => { if (context === audioContext) stopPlayback(); reject(new Error('这条录音暂时无法播放，请重试。')) }); audioContext.onEnded(() => { if (context === audioContext) stopPlayback() }); audioContext.play() })
+  // #endif
+}
+export async function playAudioPath(path) {
+  stopPlayback()
+  // #ifdef H5
+  const audio = new Audio(path); currentAudio = audio
+  const release = () => { if (currentAudio === audio) currentAudio = null }
+  audio.onended = release; audio.onerror = release
+  try { await audio.play() } catch { release(); throw new Error('示范暂时无法播放，请稍后再试。') }
+  return
+  // #endif
+  // #ifndef H5
+  context = uni.createInnerAudioContext(); context.src = path
+  const audioContext = context
+  await new Promise((resolve, reject) => { audioContext.onPlay(resolve); audioContext.onError(() => { if (context === audioContext) stopPlayback(); reject(new Error('示范暂时无法播放，请稍后再试。')) }); audioContext.onEnded(() => { if (context === audioContext) stopPlayback() }); audioContext.play() })
   // #endif
 }
 export async function deleteAudio(record) {

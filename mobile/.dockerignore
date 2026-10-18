@@ -7,3 +7,5 @@ tests
 !.env.example
 *.log
 .work
+
+public/speech/runtime-v1.12.9

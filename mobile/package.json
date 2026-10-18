@@ -1,6 +1,6 @@
 {
   "name": "kaikou-yingke",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "uni --host 0.0.0.0 --port 5174",
@@ -8,6 +8,7 @@
     "build:mp-weixin": "uni build -p mp-weixin",
     "test": "node --test tests/*.test.mjs",
     "assets": "node scripts/prepare-assets.cjs",
+    "speech:prepare": "node scripts/prepare-local-speech.mjs",
     "start": "node scripts/serve-h5.mjs",
     "dev:api": "node --env-file-if-exists=.env scripts/dev-api.mjs"
   },

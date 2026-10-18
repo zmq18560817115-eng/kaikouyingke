@@ -3,6 +3,7 @@ __pycache__/
 .DS_Store
 node_modules/
 dist/
+mobile/public/speech/runtime-v1.12.9/
 .env
 .env.*
 !.env.example

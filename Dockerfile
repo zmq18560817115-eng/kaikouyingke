@@ -1,9 +1,10 @@
 FROM node:22-alpine AS build
+RUN apk add --no-cache bzip2
 WORKDIR /app/mobile
 COPY mobile/package.json mobile/package-lock.json ./
 RUN npm ci
 COPY mobile/ ./
-RUN npm run build:h5
+RUN npm run speech:prepare && npm run build:h5
 
 FROM node:22-alpine
 WORKDIR /app

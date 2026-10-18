@@ -28,3 +28,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ```
+
+## 0.3.0 本机语音练习
+
+本机文字识别使用 sherpa-onnx v1.12.9（Next-gen Kaldi / k2-fsa，Apache-2.0）及 SenseVoiceSmall（FunAudioLLM / FunASR / Alibaba Group，FunASR Model Open Source License Agreement v1.1）。原模型名称 sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17 保留在交付说明与署名中。运行包包括 ONNX Runtime（MIT）、kaldi-native-fbank（Apache-2.0）和未启用的 Silero VAD（MIT）。随站点分发的许可证位于 public/speech/licenses，详见 public/speech/NOTICES.md。
+
+普通话合成示范由 sherpa-onnx 1.12.26 与 MyShell.ai 的 vits-melo-tts-zh_en / MeloTTS-Chinese 模型（MIT）生成。未使用操作系统受限声音制作可分发音频。原文、语速、时长及文件哈希见 src/static/audio/provenance.json；模型许可证随 src/static/audio/licenses/MeloTTS-MIT.txt 分发。音频为合成示范，尚未替代真人教学校审。

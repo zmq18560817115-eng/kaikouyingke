@@ -11,3 +11,5 @@ mobile/.env.*
 !Dockerfile
 !railway.toml
 mobile/.work
+
+mobile/public/speech/runtime-v1.12.9

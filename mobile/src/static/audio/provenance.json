@@ -1,0 +1,233 @@
+{
+  "generator": "sherpa-onnx 1.12.26",
+  "model": "vits-melo-tts-zh_en / myshell-ai/MeloTTS-Chinese",
+  "model_source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2",
+  "model_license": "MIT (MyShell.ai)",
+  "note": "普通话合成示范，未代替真人校审。",
+  "files": [
+    {
+      "file": "welcome.m4a",
+      "text": "欢迎光临！",
+      "speed": 1.0,
+      "seconds": 0.85,
+      "sha256": "f130633ce6da59d98719b1e6f5896165694154f124d90e5a2314a3f3cf54d01e"
+    },
+    {
+      "file": "welcome-slow.m4a",
+      "text": "欢迎光临！",
+      "speed": 0.72,
+      "seconds": 1.16,
+      "sha256": "6d2a79ce8feea5a58f782d942473dc8ad7a00683d31596bf11165b9cb4549788"
+    },
+    {
+      "file": "choose.m4a",
+      "text": "您想看哪一种？",
+      "speed": 1.0,
+      "seconds": 1.24,
+      "sha256": "95f445ad5c7ab9e1c8ed335d37ab798c3d6183619c482a84fa67207a9931cf22"
+    },
+    {
+      "file": "choose-slow.m4a",
+      "text": "您想看哪一种？",
+      "speed": 0.72,
+      "seconds": 1.71,
+      "sha256": "ce98f13ebfad91b37bfb918b6ed91063ba5f4d3ec57fac86b02e1e226d416f6c"
+    },
+    {
+      "file": "handmade.m4a",
+      "text": "这件产品是手工制作的。",
+      "speed": 1.0,
+      "seconds": 1.96,
+      "sha256": "537a8a27e6d5ea25ee9491dff3d1c3f58210ce3e7ea593d0f0450a6ea6b4b59e"
+    },
+    {
+      "file": "handmade-slow.m4a",
+      "text": "这件产品是手工制作的。",
+      "speed": 0.72,
+      "seconds": 2.6,
+      "sha256": "2cbb5a365ddcd093cde77b71349cdc49ea9c79a1424ad5748e6287dec85e9638"
+    },
+    {
+      "file": "introduce.m4a",
+      "text": "我给您介绍一下。",
+      "speed": 1.0,
+      "seconds": 1.31,
+      "sha256": "fc2cbf7441e7b59d58952366a21b7aa501b89c93bbc476eb437ca254c0e238a5"
+    },
+    {
+      "file": "introduce-slow.m4a",
+      "text": "我给您介绍一下。",
+      "speed": 0.72,
+      "seconds": 1.74,
+      "sha256": "51c436ec87cc12b6b9446a538b8f5333773f11fc5323a757fd652f9fff991e74"
+    },
+    {
+      "file": "word-welcome.m4a",
+      "text": "欢迎",
+      "speed": 1.0,
+      "seconds": 0.46,
+      "sha256": "7c60d527d3c2732b9604de14b9bb3d875a988a5233553f93b818005ddebb686a"
+    },
+    {
+      "file": "word-welcome-slow.m4a",
+      "text": "欢迎",
+      "speed": 0.72,
+      "seconds": 0.63,
+      "sha256": "251f531781988783d476acd586da7e6bb4f1fb7ee3588c86e7601e85c33602cb"
+    },
+    {
+      "file": "word-guanglin.m4a",
+      "text": "光临",
+      "speed": 1.0,
+      "seconds": 0.48,
+      "sha256": "dcfcaf665f56dcb9e6d1f7914ce2a7244026183e6dca1d5a0527495118af9925"
+    },
+    {
+      "file": "word-guanglin-slow.m4a",
+      "text": "光临",
+      "speed": 0.72,
+      "seconds": 0.61,
+      "sha256": "2a8b2749e004599aa6984dcf381fc59e869606d447d0760de06ffb118ae32d4b"
+    },
+    {
+      "file": "word-ninxiang.m4a",
+      "text": "您想",
+      "speed": 1.0,
+      "seconds": 0.36,
+      "sha256": "feed61afb7c83997acc4196b83cf177b79264b743baa993213d77e3d1f0d6235"
+    },
+    {
+      "file": "word-ninxiang-slow.m4a",
+      "text": "您想",
+      "speed": 0.72,
+      "seconds": 0.49,
+      "sha256": "d89c05468713e64f78f8cca21c1029196e3ce5d87bde3e96dbe21b7dd835ceb5"
+    },
+    {
+      "file": "word-which.m4a",
+      "text": "哪一种",
+      "speed": 1.0,
+      "seconds": 0.68,
+      "sha256": "31999eff3c504091b132624c21a62f6385ffb3dc1d0c97cc56f1d523a0794126"
+    },
+    {
+      "file": "word-which-slow.m4a",
+      "text": "哪一种",
+      "speed": 0.72,
+      "seconds": 0.93,
+      "sha256": "eaa3badc4416947713fb62524da9cb3cbc73af7df0e9ad5e90f4c7a9ea8873f8"
+    },
+    {
+      "file": "word-product.m4a",
+      "text": "产品",
+      "speed": 1.0,
+      "seconds": 0.33,
+      "sha256": "e576846d2e72071fc7a38884e25f5bbc13c037b916a60df93e9a14422d08e396"
+    },
+    {
+      "file": "word-product-slow.m4a",
+      "text": "产品",
+      "speed": 0.72,
+      "seconds": 0.46,
+      "sha256": "2e21aaf1a812a908595f451139068e9c452234c4763bb1918d7a838269efd7b4"
+    },
+    {
+      "file": "word-handmade.m4a",
+      "text": "手工",
+      "speed": 1.0,
+      "seconds": 0.52,
+      "sha256": "479a524e9d38561a60cb77a175e1ab629b41f239f598e73c11624e2188220c60"
+    },
+    {
+      "file": "word-handmade-slow.m4a",
+      "text": "手工",
+      "speed": 0.72,
+      "seconds": 0.72,
+      "sha256": "dcfbacee412cb48d9c6bea0e69ba265e7716128faea4d6bdd2213e15e2ff1bfd"
+    },
+    {
+      "file": "word-make.m4a",
+      "text": "制作",
+      "speed": 1.0,
+      "seconds": 0.6,
+      "sha256": "03f35ace9b618ff4a779151d33a979a0234d44f3fc6134485ad1aef9115f0845"
+    },
+    {
+      "file": "word-make-slow.m4a",
+      "text": "制作",
+      "speed": 0.72,
+      "seconds": 0.78,
+      "sha256": "5e42b8cd25a5db8ede553512425e74bc4c324866151556e1782ff48b7cca71eb"
+    },
+    {
+      "file": "word-introduce.m4a",
+      "text": "介绍",
+      "speed": 1.0,
+      "seconds": 0.33,
+      "sha256": "889e606f3949377cc2848806708312c96f2ccb69e67f71d8a4f31b266d1447da"
+    },
+    {
+      "file": "word-introduce-slow.m4a",
+      "text": "介绍",
+      "speed": 0.72,
+      "seconds": 0.43,
+      "sha256": "e1d1d3c9f276412c1d53b72634efe2ca7f6c6c8b0141a3904f7525a31af65373"
+    },
+    {
+      "file": "word-yixia.m4a",
+      "text": "一下",
+      "speed": 1.0,
+      "seconds": 0.51,
+      "sha256": "afb56f075d8f226290be55daf3eae6c41499a4c8221f18af9436edb031a2c59d"
+    },
+    {
+      "file": "word-yixia-slow.m4a",
+      "text": "一下",
+      "speed": 0.72,
+      "seconds": 0.52,
+      "sha256": "c48510bc7458aff8e6fd74f2bd2e2d380531855d741ddea2253927937c0a54b5"
+    },
+    {
+      "file": "lesson-welcome.m4a",
+      "text": "欢迎您！请问一共几位？",
+      "speed": 1.0,
+      "seconds": 1.87,
+      "sha256": "ad26f46ce4555292a0a24e133baf9bd90d880ae39f443a161bbdf3ab790d9904"
+    },
+    {
+      "file": "lesson-welcome-slow.m4a",
+      "text": "欢迎您！请问一共几位？",
+      "speed": 0.72,
+      "seconds": 2.31,
+      "sha256": "ad08841acbd932d90fbfebbb7c03e5c2af3c2b001e164b95f970cb085e221544"
+    },
+    {
+      "file": "lesson-price.m4a",
+      "text": "我们按份卖。请让我为您确认价格。",
+      "speed": 1.0,
+      "seconds": 2.61,
+      "sha256": "92fc3d485b30ccf179c8f8df12981a18f6565cbfda208ee563282078ea0c5ac7"
+    },
+    {
+      "file": "lesson-price-slow.m4a",
+      "text": "我们按份卖。请让我为您确认价格。",
+      "speed": 0.72,
+      "seconds": 3.41,
+      "sha256": "838bdf6d6e1d87f3a3503ef5d397fe3ccf3e943f2fe5a3788c315893bbe2ca0e"
+    },
+    {
+      "file": "lesson-product.m4a",
+      "text": "这是我们自家做的商品。我给您介绍一下。",
+      "speed": 1.0,
+      "seconds": 3.17,
+      "sha256": "3ea640182d9a9615b93b7a53d3ec87bb65c001ac4539c2a425892290aef36226"
+    },
+    {
+      "file": "lesson-product-slow.m4a",
+      "text": "这是我们自家做的商品。我给您介绍一下。",
+      "speed": 0.72,
+      "seconds": 4.19,
+      "sha256": "2bfa0cea70ae91daf2740ccd62cd89e56139ee6fd582ec45ee983b057bd565f3"
+    }
+  ]
+}

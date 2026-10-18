@@ -1,6 +1,6 @@
 # Railway 部署
 
-应用版本 0.1.1。部署输出为手机 H5，微信小程序产物另行提交至微信开发者工具。本服务没有在线 AI 后端和数据库，学习记录及录音仍在用户本机。
+应用版本 0.3.0。部署输出为手机 H5，微信小程序产物另行提交至微信开发者工具。本服务没有在线 AI 后端和数据库，学习记录及录音仍在用户本机。
 
 ## 现有项目
 
@@ -14,7 +14,7 @@
 
 1. 服务 Source 连接上述仓库与 `main`；Root Directory 可使用仓库根目录 `/`（推荐），也兼容已有 `/mobile` 设置。
 2. 根目录部署使用 `/railway.toml`；若 Root Directory 为 `/mobile`，配置文件路径使用 `/mobile/railway.toml`。采用 Dockerfile 构建，无需另填 Build Command。
-3. 镜像在 Node.js 22 中执行 `mobile/npm ci`、`npm run build:h5`，运行层只复制网页产物与服务脚本。
+3. 镜像在 Node.js 22 中执行 `mobile/npm ci`、`npm run speech:prepare`、`npm run build:h5`，运行层只复制网页产物与服务脚本。
 4. 启动 `node scripts/serve-h5.mjs`，监听 `0.0.0.0:$PORT`；`PORT` 由 Railway 注入，无需固定 5174。
 5. 健康检查 `/healthz`，成功返回 HTTP 200 与版本号。公开访问在 Networking 中生成 Railway 域名，使用 HTTPS。
 
@@ -26,6 +26,7 @@
 cd mobile
 npm ci
 npm test
+npm run speech:prepare
 npm run build:h5
 PORT=3000 npm start
 ```
@@ -56,3 +57,9 @@ PORT=3000 npm start
 镜像现在同时包含 `server` 与 `shared` 模块，仍使用同一启动命令和动态端口。客户端新增讲述发音评分、识别文本、字词建议与复盘报告；真实供应商接入需要另外开通腾讯云服务。
 
 没有凭据时保持 `SPEECH_ASSESSMENT_ENABLED=false`；`GET /api/speech/capabilities` 返回 `enabled:false`，评分上传接口返回明确的 503，不产生模拟分数。开通步骤、服务端变量、限额与验证边界见 [语音评测接入说明](mobile/integration/README.md)。健康检查的应用版本更新为 0.2.0。
+
+## 0.3.0 免费本机识别
+
+两个 Dockerfile 在编译前运行 `npm run speech:prepare`，从官方固定发布下载约158MiB压缩包并校验SHA-256，生成约240MiB的客户端运行包。网页静态产物包含模型，推理在用户浏览器 Worker 中进行，不增加服务器推理进程，不需要腾讯变量。首次模型分发消耗托管流量，浏览器端需较多内存。模型不提交Git；构建下载失败时部署应失败，保留上一版线上实例。
+
+H5通过主动确认下载模型，本机缓存按固定版本保存；清除缓存可在「我的 → 帮助与设置」操作。微信产物不包含public下的大模型。服务支持音频Range，固定版本模型采用长期缓存，健康检查版本为0.3.0。
